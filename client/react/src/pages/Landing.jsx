@@ -1,11 +1,22 @@
 import { motion } from "framer-motion";
 import {
   Activity,
-  LineChart,
+  LineChart as LineChartIcon,
   Shield,
   Workflow,
   ArrowRight,
 } from "lucide-react";
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  CartesianGrid,
+  Tooltip,
+} from "recharts";
 import Navbar from "../components/Navbar.jsx";
 import Hero from "../components/Hero.jsx";
 import Footer from "../components/Footer.jsx";
@@ -29,7 +40,7 @@ const Landing = () => {
 const FeaturesSection = () => {
   const features = [
     {
-      icon: LineChart,
+      icon: LineChartIcon,
       title: "Revenue Forecast",
       description: "Predict next-month revenue with ML-driven cohort models.",
       tone: "from-violet-500/20 via-slate-900 to-slate-950",
@@ -240,6 +251,22 @@ const DashboardPreviewSection = () => {
 };
 
 const DashboardPreview = () => {
+  const forecastData = [
+    { label: "M+0", mrr: 48000 },
+    { label: "M+2", mrr: 52200 },
+    { label: "M+4", mrr: 56800 },
+    { label: "M+6", mrr: 61800 },
+    { label: "M+8", mrr: 67200 },
+    { label: "M+10", mrr: 73100 },
+    { label: "M+12", mrr: 79500 },
+  ];
+  const churnData = [
+    { month: "M-2", rate: 3.8 },
+    { month: "M-1", rate: 4.2 },
+    { month: "Now", rate: 4.5 },
+    { month: "M+1", rate: 4.8 },
+  ];
+
   return (
     <div className="relative">
       <div className="mb-3 flex items-center justify-between gap-4 text-[11px] text-slate-400">
@@ -251,12 +278,80 @@ const DashboardPreview = () => {
           Multi-scenario · 12 months
         </span>
       </div>
-      <div className="grid gap-4 md:grid-cols-[2fr,1fr]">
-        <div className="card-elevated h-56 rounded-2xl bg-slate-950/80" />
-        <div className="space-y-3">
-          <div className="card-elevated h-16 rounded-2xl bg-slate-950/80" />
-          <div className="card-elevated h-16 rounded-2xl bg-slate-950/80" />
-          <div className="card-elevated h-16 rounded-2xl bg-slate-950/80" />
+      <DashboardPreviewCharts forecastData={forecastData} churnData={churnData} />
+    </div>
+  );
+};
+
+const DashboardPreviewCharts = ({ forecastData, churnData }) => {
+  return (
+    <div className="grid gap-4 md:grid-cols-[2fr,1fr]">
+      <div className="card-elevated h-56 overflow-hidden rounded-2xl bg-slate-950/80 p-4">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={forecastData} margin={{ top: 4, right: 4, left: -20, bottom: 4 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.15)" />
+            <XAxis dataKey="label" tick={{ fill: "#94a3b8", fontSize: 10 }} />
+            <YAxis
+              width={32}
+              tick={{ fill: "#94a3b8", fontSize: 10 }}
+              tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "#0b0d12",
+                borderRadius: 8,
+                border: "1px solid rgba(51,65,85,0.8)",
+                fontSize: 11,
+              }}
+              formatter={(v) => [`$${v.toLocaleString()}`, "MRR"]}
+            />
+            <defs>
+              <linearGradient id="previewStroke" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="#22d3ee" />
+                <stop offset="100%" stopColor="#a855f7" />
+              </linearGradient>
+            </defs>
+            <Line
+              type="monotone"
+              dataKey="mrr"
+              stroke="url(#previewStroke)"
+              strokeWidth={2}
+              dot={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="space-y-3">
+        <div className="card-elevated h-[calc(50%-6px)] overflow-hidden rounded-2xl bg-slate-950/80 p-3">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={churnData} margin={{ top: 4, right: 4, left: -20, bottom: 4 }}>
+              <XAxis dataKey="month" tick={{ fill: "#94a3b8", fontSize: 9 }} />
+              <YAxis
+                width={24}
+                tick={{ fill: "#94a3b8", fontSize: 9 }}
+                tickFormatter={(v) => `${v}%`}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#0b0d12",
+                  borderRadius: 8,
+                  border: "1px solid rgba(51,65,85,0.8)",
+                  fontSize: 10,
+                }}
+                formatter={(v) => [`${v}%`, "Churn"]}
+              />
+              <Bar dataKey="rate" fill="#818cf8" radius={[2, 2, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="card-elevated h-[calc(50%-6px)] overflow-hidden rounded-2xl bg-slate-950/80 p-3 flex items-center justify-center">
+          <div className="text-center">
+            <div className="text-[10px] uppercase tracking-wider text-slate-500">Risk</div>
+            <div className="mt-1 flex items-center justify-center gap-1">
+              <span className="h-2 w-2 rounded-full bg-amber-400" />
+              <span className="text-xs font-semibold text-amber-300">ELEVATED</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

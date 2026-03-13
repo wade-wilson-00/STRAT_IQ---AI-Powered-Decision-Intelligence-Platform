@@ -80,7 +80,7 @@ if __name__ == "__main__":
     forecaster.evaluation()
     forecaster.save_model()
 
-    print("\n✓✓✓ Training Pipeline Complete! ✓✓✓")
+    print("\n Training Pipeline Complete ")
 
         
 

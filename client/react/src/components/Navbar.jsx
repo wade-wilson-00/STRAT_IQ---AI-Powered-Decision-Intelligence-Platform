@@ -6,8 +6,10 @@ import Logo from "./Logo.jsx";
 
 const navLinks = [
   { label: "Home", href: "/" },
+  { label: "Dashboard", href: "/dashboard" },
   { label: "Revenue", href: "/revenue" },
   { label: "Churn", href: "/churn" },
+  { label: "AI Advisor", href: "/advisor" },
 ];
 
 const Navbar = () => {

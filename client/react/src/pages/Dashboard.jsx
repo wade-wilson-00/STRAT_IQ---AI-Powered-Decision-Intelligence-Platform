@@ -5,25 +5,68 @@ import DashboardLayout from "../components/DashboardLayout.jsx";
 import MetricCard from "../components/MetricCard.jsx";
 import ForecastChart from "../components/ForecastChart.jsx";
 import RiskPanel from "../components/RiskPanel.jsx";
+import ChurnRateChart from "../components/charts/ChurnRateChart.jsx";
+import RiskEngineChart from "../components/charts/RiskEngineChart.jsx";
+import { CardSkeleton, ChartSkeleton } from "../components/ui/LoadingSkeleton.jsx";
 import { getForecast, getChurnRisk } from "../services/api.js";
 
 const Dashboard = () => {
   const [metrics, setMetrics] = useState(null);
   const [forecast, setForecast] = useState([]);
   const [risk, setRisk] = useState({ level: "medium", summary: "" });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const load = async () => {
-      const [forecastData, churnRisk] = await Promise.all([
-        getForecast(),
-        getChurnRisk(),
-      ]);
-      setMetrics(forecastData.metrics);
-      setForecast(forecastData.series);
-      setRisk(churnRisk);
+      try {
+        setLoading(true);
+        setError(null);
+        const [forecastData, churnRisk] = await Promise.all([
+          getForecast(),
+          getChurnRisk(),
+        ]);
+        setMetrics(forecastData.metrics);
+        setForecast(forecastData.series);
+        setRisk(churnRisk);
+      } catch (err) {
+        setError(err.message || "Failed to load dashboard data");
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, []);
+
+  if (loading && !metrics) {
+    return (
+      <DashboardLayout>
+        <div className="grid gap-4 md:grid-cols-3">
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+        </div>
+        <div className="mt-6 grid gap-5 lg:grid-cols-[2.1fr,1.2fr]">
+          <ChartSkeleton />
+          <ChartSkeleton />
+        </div>
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <ChartSkeleton />
+          <ChartSkeleton />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="rounded-2xl border border-rose-500/40 bg-rose-500/10 p-6 text-rose-300">
+          {error}
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -72,7 +115,12 @@ const Dashboard = () => {
           <RiskPanel riskLevel={risk.level} summary={risk.summary} />
         </section>
 
-        <section className="mt-4 grid gap-4 md:grid-cols-2">
+        <section className="grid gap-5 lg:grid-cols-2">
+          <ChurnRateChart probability={risk.probability} level={risk.level} />
+          <RiskEngineChart riskLevel={risk.level} />
+        </section>
+
+        <section className="mt-4 grid gap-4 md:grid-cols-3">
           <NavCard
             to="/revenue"
             title="Revenue forecasting"
@@ -82,6 +130,11 @@ const Dashboard = () => {
             to="/churn"
             title="Churn prediction"
             description="Estimate churn probability using engagement, support, and cohort signals."
+          />
+          <NavCard
+            to="/advisor"
+            title="AI Advisor"
+            description="Ask questions in natural language. RAG insights, strategy advice, and multi-tool orchestration."
           />
         </section>
       </motion.div>

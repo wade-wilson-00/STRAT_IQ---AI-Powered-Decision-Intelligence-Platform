@@ -1,22 +1,47 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 import Navbar from "../components/Navbar.jsx";
 import Footer from "../components/Footer.jsx";
+import Field from "../components/forms/Field.jsx";
+import SubmitButton from "../components/forms/SubmitButton.jsx";
+import { validateLoginForm } from "../lib/validation.js";
 
 const Login = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const validationErrors = validateLoginForm(form);
+    if (validationErrors) {
+      setErrors(validationErrors);
+      toast.error("Please fix the form errors");
+      return;
+    }
+
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setLoading(false);
+    setErrors({});
+
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      toast.success("Welcome back! Redirecting to dashboard...");
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 500);
+    } catch (err) {
+      toast.error(err.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -40,49 +65,27 @@ const Login = () => {
             </p>
           </div>
           <form onSubmit={handleSubmit} className="relative space-y-4">
-            <div className="space-y-1.5">
-              <label
-                htmlFor="email"
-                className="text-xs font-medium uppercase tracking-[0.22em] text-slate-400"
-              >
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                disabled={loading}
-                value={form.email}
-                onChange={handleChange}
-                className="w-full rounded-xl border border-slate-800/80 bg-slate-950/60 px-3 py-2.5 text-sm text-slate-100 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-500/30 disabled:opacity-60"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label
-                htmlFor="password"
-                className="text-xs font-medium uppercase tracking-[0.22em] text-slate-400"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                disabled={loading}
-                value={form.password}
-                onChange={handleChange}
-                className="w-full rounded-xl border border-slate-800/80 bg-slate-950/60 px-3 py-2.5 text-sm text-slate-100 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-500/30 disabled:opacity-60"
-              />
-            </div>
-            <button
-              type="submit"
+            <Field
+              label="Email"
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
               disabled={loading}
-              className="mt-2 flex w-full items-center justify-center rounded-full bg-gradient-accent px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.22em] text-slate-950 shadow-glow-purple transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
-            >
+              error={errors.email}
+            />
+            <Field
+              label="Password"
+              name="password"
+              type="password"
+              value={form.password}
+              onChange={handleChange}
+              disabled={loading}
+              error={errors.password}
+            />
+            <SubmitButton loading={loading}>
               {loading ? "Signing in..." : "Login"}
-            </button>
+            </SubmitButton>
           </form>
           <div className="mt-4 text-center text-xs text-slate-400 md:text-sm">
             Don&apos;t have an account?{" "}
@@ -101,4 +104,3 @@ const Login = () => {
 };
 
 export default Login;
-

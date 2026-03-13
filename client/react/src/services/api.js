@@ -1,13 +1,50 @@
 import axios from "axios";
 
+const baseURL =
+  import.meta.env.VITE_API_BASE_URL || "https://api.stratiq.mock";
+const timeout = Number(import.meta.env.VITE_API_TIMEOUT) || 6000;
+
 const client = axios.create({
-  baseURL: "https://api.stratiq.mock",
-  timeout: 6000,
+  baseURL,
+  timeout,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-export const postForecast = async (payload) => {
-  await new Promise((resolve) => setTimeout(resolve, 220));
+// Request interceptor - add auth token when available
+client.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("stratiq_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
+// Response interceptor - centralized error handling
+client.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const message =
+      error.response?.data?.message ||
+      error.message ||
+      "An unexpected error occurred";
+    const status = error.response?.status;
+
+    const enrichedError = new Error(message);
+    enrichedError.status = status;
+    enrichedError.response = error.response;
+    enrichedError.isNetworkError = !error.response;
+
+    return Promise.reject(enrichedError);
+  }
+);
+
+// --- Forecast ---
+export const postForecast = async (payload) => {
   const {
     currentMRR = 50000,
     activeUsers = 1000,
@@ -45,6 +82,8 @@ export const postForecast = async (payload) => {
     };
   });
 
+  await new Promise((r) => setTimeout(r, 220));
+
   return {
     metrics: {
       currentMRR: baseMRR,
@@ -61,9 +100,8 @@ export const postForecast = async (payload) => {
   };
 };
 
+// --- Churn ---
 export const postChurn = async (payload) => {
-  await new Promise((resolve) => setTimeout(resolve, 180));
-
   const {
     activeUsers = 800,
     cac = 8,
@@ -92,6 +130,8 @@ export const postChurn = async (payload) => {
     high: "Churn probability is high. Consider prioritizing retention workstreams before scaling acquisition spend.",
   };
 
+  await new Promise((r) => setTimeout(r, 180));
+
   return {
     probability,
     level,
@@ -99,9 +139,8 @@ export const postChurn = async (payload) => {
   };
 };
 
+// --- Simulation ---
 export const postSimulate = async (params) => {
-  await new Promise((resolve) => setTimeout(resolve, 200));
-
   const { churn, cac, burn, marketing } = params;
 
   const sensitivity = (churn - 4.5) * 0.4 + (burn - 1.2) * 12;
@@ -133,6 +172,8 @@ export const postSimulate = async (params) => {
     high: "Several scenarios show runway compression under 12 months. Prioritize retention and CAC efficiency before scaling spend.",
   };
 
+  await new Promise((r) => setTimeout(r, 200));
+
   return {
     series,
     predictedMRR: series[1].mrr,
@@ -142,16 +183,79 @@ export const postSimulate = async (params) => {
       level: riskLevel,
       summary: riskSummaryByLevel[riskLevel],
     },
-    notes: {
-      cac,
-      marketing,
-    },
+    notes: { cac, marketing },
   };
 };
 
+// --- Convenience wrappers ---
 export const getForecast = () => postForecast({});
 export const getChurnRisk = () => postChurn({});
 export const simulateScenario = (params) => postSimulate(params);
 
-export default client;
+// --- AI / RAG endpoints (mock for now, ready for backend) ---
+const ragUrl = import.meta.env.VITE_RAG_API_URL;
+const strategyUrl = import.meta.env.VITE_STRATEGY_API_URL;
+const advisorUrl = import.meta.env.VITE_ADVISOR_API_URL;
 
+export const fetchRAGInsights = async (query, context = {}) => {
+  if (ragUrl) {
+    const res = await client.post(ragUrl, { query, context });
+    return res.data;
+  }
+  // Mock RAG response
+  await new Promise((r) => setTimeout(r, 400));
+  return {
+    insights: [
+      "Cohort retention curves suggest early churn spikes in months 2–3. Consider strengthening onboarding flows.",
+      "MRR growth correlates positively with engagement score above 0.65. Focus on in-product activation.",
+    ],
+    sources: [
+      { id: "kb-001", title: "Startup Retention Benchmarks", relevance: 0.92 },
+      { id: "kb-002", title: "SaaS Cohort Analysis", relevance: 0.88 },
+    ],
+  };
+};
+
+export const fetchStrategyAdvice = async (metrics, context) => {
+  if (strategyUrl) {
+    const res = await client.post(strategyUrl, { metrics, context });
+    return res.data;
+  }
+  await new Promise((r) => setTimeout(r, 500));
+  return {
+    advice: [
+      {
+        title: "Optimize CAC payback",
+        recommendation:
+          "Your CAC payback is above 9 months. Consider testing lifecycle emails and product-led expansion to reduce payback to 6–7 months.",
+        priority: "high",
+      },
+      {
+        title: "Retention focus",
+        recommendation:
+          "Churn risk is elevated. Prioritize success touchpoints and in-app nudges for at-risk cohorts before scaling acquisition.",
+        priority: "medium",
+      },
+    ],
+    confidence: 0.87,
+  };
+};
+
+export const askAdvisor = async (question) => {
+  if (advisorUrl) {
+    const res = await client.post(advisorUrl, { question });
+    return res.data;
+  }
+  await new Promise((r) => setTimeout(r, 800));
+  return {
+    answer:
+      "Based on your current metrics, I recommend focusing on retention before scaling acquisition. Your churn rate suggests room for improvement in onboarding and engagement. I've analyzed your forecast, churn probability, and risk scenarios.",
+    toolsUsed: ["forecast", "churn", "risk"],
+    followUps: [
+      "What specific retention tactics would help?",
+      "How does my CAC compare to benchmarks?",
+    ],
+  };
+};
+
+export default client;

@@ -9,7 +9,15 @@ import {
   CartesianGrid,
 } from "recharts";
 
+const EMPTY_DATA = [
+  { label: "M+0", mrr: 0 },
+  { label: "M+2", mrr: 0 },
+  { label: "M+4", mrr: 0 },
+  { label: "M+6", mrr: 0 },
+];
+
 const ForecastChart = ({ data, variant = "default" }) => {
+  const chartData = data?.length ? data : EMPTY_DATA;
   const containerHeight =
     variant === "large" ? "h-[420px] md:h-[460px]" : "h-72 md:h-80";
   return (
@@ -39,7 +47,7 @@ const ForecastChart = ({ data, variant = "default" }) => {
       <div className="relative flex-1">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
-            data={data}
+            data={chartData}
             margin={{ top: 8, right: 12, left: -8, bottom: 8 }}
           >
             <CartesianGrid

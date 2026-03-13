@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
 import Navbar from "../components/Navbar.jsx";
 import Footer from "../components/Footer.jsx";
 import AIInsightPanel from "../components/AIInsightPanel.jsx";
+import ChurnRateChart from "../components/charts/ChurnRateChart.jsx";
+import Field from "../components/forms/Field.jsx";
+import SubmitButton from "../components/forms/SubmitButton.jsx";
 import { postChurn } from "../services/api.js";
+import { validateChurnForm } from "../lib/validation.js";
 
 const Churn = () => {
   const [form, setForm] = useState({
@@ -15,55 +20,72 @@ const Churn = () => {
     productUsageScore: "",
   });
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const [result, setResult] = useState(null);
   const [insight, setInsight] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: null }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setInsight(null);
 
-    const payload = {
-      activeUsers: Number(form.activeUsers) || 0,
-      cac: Number(form.cac) || 0,
-      engagementScore: Number(form.engagementScore) || 0,
-      customerAgeMonths: Number(form.customerAgeMonths) || 0,
-      supportTickets: Number(form.supportTickets) || 0,
-      productUsageScore: Number(form.productUsageScore) || 0,
-    };
-
-    const churn = await postChurn(payload);
-    setResult(churn);
-
-    let message;
-    let tone = "neutral";
-
-    if (churn.probability > 0.35) {
-      message =
-        "Churn risk is elevated. Consider reinforcing onboarding, success touchpoints, and in-product nudges for at‑risk cohorts.";
-      tone = "negative";
-    } else if (churn.probability > 0.2) {
-      message =
-        "Churn risk is moderate. Targeted engagement for lower‑usage accounts could meaningfully reduce churn probability.";
-      tone = "neutral";
-    } else {
-      message =
-        "Churn probability appears contained. Maintain current retention programs and continue watching leading indicators.";
-      tone = "positive";
+    const validationErrors = validateChurnForm(form);
+    if (validationErrors) {
+      setErrors(validationErrors);
+      toast.error("Please fix the form errors");
+      return;
     }
 
-    setInsight({
-      title: "Churn risk profile",
-      message,
-      tone,
-    });
+    setLoading(true);
+    setInsight(null);
+    setErrors({});
 
-    setLoading(false);
+    try {
+      const payload = {
+        activeUsers: Number(form.activeUsers) || 0,
+        cac: Number(form.cac) || 0,
+        engagementScore: Number(form.engagementScore) || 0,
+        customerAgeMonths: Number(form.customerAgeMonths) || 0,
+        supportTickets: Number(form.supportTickets) || 0,
+        productUsageScore: Number(form.productUsageScore) || 0,
+      };
+
+      const churn = await postChurn(payload);
+      setResult(churn);
+
+      let message;
+      let tone = "neutral";
+
+      if (churn.probability > 0.35) {
+        message =
+          "Churn risk is elevated. Consider reinforcing onboarding, success touchpoints, and in-product nudges for at‑risk cohorts.";
+        tone = "negative";
+      } else if (churn.probability > 0.2) {
+        message =
+          "Churn risk is moderate. Targeted engagement for lower‑usage accounts could meaningfully reduce churn probability.";
+        tone = "neutral";
+      } else {
+        message =
+          "Churn probability appears contained. Maintain current retention programs and continue watching leading indicators.";
+        tone = "positive";
+      }
+
+      setInsight({
+        title: "Churn risk profile",
+        message,
+        tone,
+      });
+
+      toast.success(`Churn analysis complete: ${(churn.probability * 100).toFixed(1)}% probability (${churn.level} risk)`);
+    } catch (err) {
+      toast.error(err.message || "Failed to predict churn");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const disabled = loading;
@@ -105,6 +127,7 @@ const Churn = () => {
                   value={form.activeUsers}
                   onChange={handleChange}
                   disabled={disabled}
+                  error={errors.activeUsers}
                 />
                 <Field
                   label="CAC (months to payback)"
@@ -114,6 +137,7 @@ const Churn = () => {
                   value={form.cac}
                   onChange={handleChange}
                   disabled={disabled}
+                  error={errors.cac}
                 />
                 <Field
                   label="Engagement score (0–1)"
@@ -124,6 +148,7 @@ const Churn = () => {
                   value={form.engagementScore}
                   onChange={handleChange}
                   disabled={disabled}
+                  error={errors.engagementScore}
                 />
                 <Field
                   label="Customer age (months)"
@@ -133,6 +158,7 @@ const Churn = () => {
                   value={form.customerAgeMonths}
                   onChange={handleChange}
                   disabled={disabled}
+                  error={errors.customerAgeMonths}
                 />
                 <Field
                   label="Support tickets (last 30d)"
@@ -142,6 +168,7 @@ const Churn = () => {
                   value={form.supportTickets}
                   onChange={handleChange}
                   disabled={disabled}
+                  error={errors.supportTickets}
                 />
                 <Field
                   label="Product usage score (0–1)"
@@ -152,40 +179,43 @@ const Churn = () => {
                   value={form.productUsageScore}
                   onChange={handleChange}
                   disabled={disabled}
+                  error={errors.productUsageScore}
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={disabled}
-                className="relative mt-6 flex w-full items-center justify-center rounded-full bg-gradient-accent px-4 py-2.5 text-sm font-semibold uppercase tracking-[0.22em] text-slate-950 shadow-glow-purple transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
-              >
+              <SubmitButton loading={loading}>
                 {loading ? "Analyzing metrics..." : "Predict churn"}
-              </button>
+              </SubmitButton>
             </motion.form>
 
             <div className="space-y-4">
               {result && (
-                <motion.div
-                  initial={{ opacity: 0, y: 18 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
-                  className="card-elevated relative overflow-hidden rounded-3xl bg-strat-card/80 p-5"
-                >
-                  <div className="pointer-events-none absolute inset-0 bg-panel-glow opacity-40" />
-                  <div className="mb-2 flex items-center justify-between">
-                    <div className="text-sm font-medium uppercase tracking-[0.24em] text-slate-400">
-                      Churn probability
+                <>
+                  <motion.div
+                    initial={{ opacity: 0, y: 18 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
+                    className="card-elevated relative overflow-hidden rounded-3xl bg-strat-card/80 p-5"
+                  >
+                    <div className="pointer-events-none absolute inset-0 bg-panel-glow opacity-40" />
+                    <div className="mb-2 flex items-center justify-between">
+                      <div className="text-sm font-medium uppercase tracking-[0.24em] text-slate-400">
+                        Churn probability
+                      </div>
+                      <RiskBadge level={result.level} />
                     </div>
-                    <RiskBadge level={result.level} />
-                  </div>
-                  <div className="text-4xl font-semibold text-slate-50 md:text-5xl">
-                    {(result.probability * 100).toFixed(1)}%
-                  </div>
-                  <p className="mt-2 text-sm text-slate-300 md:text-base">
-                    Based on the signals you provided for this cohort.
-                  </p>
-                </motion.div>
+                    <div className="text-4xl font-semibold text-slate-50 md:text-5xl">
+                      {(result.probability * 100).toFixed(1)}%
+                    </div>
+                    <p className="mt-2 text-sm text-slate-300 md:text-base">
+                      Based on the signals you provided for this cohort.
+                    </p>
+                  </motion.div>
+                  <ChurnRateChart
+                    probability={result.probability}
+                    level={result.level}
+                  />
+                </>
               )}
               <AIInsightPanel
                 title={insight?.title}
@@ -200,37 +230,6 @@ const Churn = () => {
     </div>
   );
 };
-
-const Field = ({
-  label,
-  name,
-  value,
-  onChange,
-  disabled,
-  placeholder,
-  type = "text",
-  step,
-}) => (
-  <div className="space-y-1.5">
-    <label
-      htmlFor={name}
-      className="text-xs font-medium uppercase tracking-[0.22em] text-slate-400"
-    >
-      {label}
-    </label>
-    <input
-      id={name}
-      name={name}
-      type={type}
-      step={step}
-      value={value}
-      onChange={onChange}
-      disabled={disabled}
-      placeholder={placeholder}
-      className="w-full rounded-xl border border-slate-800/80 bg-slate-950/60 px-3 py-2.5 text-sm text-slate-100 outline-none transition focus:border-violet-400 focus:ring-2 focus:ring-violet-500/30 disabled:opacity-60 md:text-base"
-    />
-  </div>
-);
 
 const RiskBadge = ({ level }) => {
   const map = {
@@ -251,4 +250,3 @@ const RiskBadge = ({ level }) => {
 };
 
 export default Churn;
-
