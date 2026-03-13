@@ -48,7 +48,7 @@ const AutonomousAdvisor = () => {
     >
       <div className="pointer-events-none absolute inset-0 bg-panel-glow opacity-70" />
       <div className="relative space-y-4">
-        <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/40 bg-violet-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-violet-300">
+        <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/40 bg-violet-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-violet-300">
           <Wrench className="h-3.5 w-3.5" />
           Autonomous Advisor · Multi-Tool
         </div>
@@ -80,7 +80,7 @@ const AutonomousAdvisor = () => {
         </form>
 
         {error && (
-          <p className="text-sm text-rose-400">{error}</p>
+          <p className="text-base text-rose-400">{error}</p>
         )}
 
         {answer && (
@@ -88,14 +88,14 @@ const AutonomousAdvisor = () => {
             <p className="text-base leading-relaxed text-slate-200">{answer}</p>
             {toolsUsed.length > 0 && (
               <div>
-                <div className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500 mb-2">
+                <div className="text-xs font-medium uppercase tracking-[0.22em] text-slate-500 mb-2">
                   Tools used
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {toolsUsed.map((tool) => (
                     <span
                       key={tool}
-                      className="inline-flex items-center gap-1 rounded-full bg-slate-800/80 px-3 py-1 text-xs text-cyan-300"
+                      className="inline-flex items-center gap-1 rounded-full bg-slate-800/80 px-3 py-1.5 text-sm text-cyan-300"
                     >
                       <Wrench className="h-3 w-3" />
                       {tool}
@@ -106,7 +106,7 @@ const AutonomousAdvisor = () => {
             )}
             {followUps.length > 0 && (
               <div>
-                <div className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500 mb-2">
+                <div className="text-xs font-medium uppercase tracking-[0.22em] text-slate-500 mb-2">
                   Follow-up questions
                 </div>
                 <div className="flex flex-wrap gap-2">

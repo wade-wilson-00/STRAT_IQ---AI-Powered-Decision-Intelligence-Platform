@@ -40,7 +40,7 @@ const Advisor = () => {
       >
         <header className="space-y-2">
           <h1 className="text-3xl font-semibold tracking-tight text-slate-50 md:text-4xl">
-            AI Strategic Advisor
+            Your Personalized AI Advisor
           </h1>
           <p className="max-w-2xl text-base text-slate-400">
             RAG-powered insights, strategy recommendations, and an autonomous

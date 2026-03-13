@@ -80,12 +80,12 @@ const StrategyAdvisor = ({ metrics = {}, context = "" }) => {
       <div className="pointer-events-none absolute inset-0 bg-panel-glow opacity-70" />
       <div className="relative space-y-4">
         <div className="flex items-center justify-between">
-          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-300">
+          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/40 bg-cyan-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-300">
             <Sparkles className="h-3.5 w-3.5" />
             Strategy Advisor
           </div>
           {confidence != null && (
-            <span className="text-[11px] text-slate-500">
+            <span className="text-xs text-slate-500">
               {(confidence * 100).toFixed(0)}% confidence
             </span>
           )}
@@ -110,7 +110,7 @@ const StrategyAdvisor = ({ metrics = {}, context = "" }) => {
             </div>
           ))}
         </div>
-        <p className="text-xs text-slate-500">
+        <p className="text-sm text-slate-500">
           Advice is tailored to your startup metrics and industry benchmarks.
         </p>
       </div>

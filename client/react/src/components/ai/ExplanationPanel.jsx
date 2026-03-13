@@ -109,7 +109,7 @@ const ExplanationPanel = ({ query, context = {}, trigger = 0 }) => {
     >
       <div className="pointer-events-none absolute inset-0 bg-panel-glow opacity-70" />
       <div className="relative space-y-4">
-        <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/40 bg-violet-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-violet-300">
+        <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/40 bg-violet-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-violet-300">
           <BookOpen className="h-3.5 w-3.5" />
           RAG · Knowledge Base
         </div>
@@ -122,7 +122,7 @@ const ExplanationPanel = ({ query, context = {}, trigger = 0 }) => {
         </div>
         {sources.length > 0 && (
           <div className="border-t border-slate-800/80 pt-4">
-            <div className="text-[11px] font-medium uppercase tracking-[0.22em] text-slate-500 mb-2">
+            <div className="text-xs font-medium uppercase tracking-[0.22em] text-slate-500 mb-2">
               Sources
             </div>
             <div className="flex flex-wrap gap-2">
@@ -133,7 +133,7 @@ const ExplanationPanel = ({ query, context = {}, trigger = 0 }) => {
                   className="inline-flex items-center gap-1.5 rounded-full bg-slate-900/80 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-800 hover:text-violet-300 transition"
                 >
                   {src.title}
-                  <span className="text-slate-500 text-[10px]">
+                  <span className="text-slate-500 text-xs">
                     {(src.relevance * 100).toFixed(0)}% match
                   </span>
                   <ExternalLink className="h-3 w-3 opacity-60" />
