@@ -6,7 +6,7 @@ np.random.seed(42)
 def generate_churn_data(n_samples=1000):
     data = {
         'engagement_score': np.random.uniform(0, 1, n_samples),
-        'nps_score': np.random.randint(-100, 100, n_samples),
+        'nps_score': np.random.randint(0, 11, n_samples),
         'product_adoption_rate': np.random.uniform(0, 1, n_samples),
         'payment_failures': np.random.randint(0, 10, n_samples),
         'support_tickets_last_30d': np.random.randint(0, 50, n_samples),
@@ -20,17 +20,24 @@ def generate_churn_data(n_samples=1000):
     churn_list = []
 
     for i in range(n_samples):
-        churn_prob = 0.20
+        churn_prob = 0.10
         
         if data['engagement_score'][i] < 0.3:
-            churn_prob += 0.35
+            churn_prob += 0.25
         elif data['engagement_score'][i] > 0.7:
             churn_prob -= 0.15
         
-        if data['nps_score'][i] < 0:
-            churn_prob += 0.25
-        elif data['nps_score'][i] > 50:
+        if data['nps_score'][i] <= 6:
+            churn_prob += 0.15
+        elif data['nps_score'][i] >= 9:
             churn_prob -= 0.15
+        
+        # Interaction effect: Detractors with low engagement are even more risky
+        if data['nps_score'][i] <= 6 and data['engagement_score'][i] < 0.3:
+            churn_prob += 0.10
+            
+        # Add random jitter to simulate human variance
+        churn_prob += np.random.uniform(-0.05, 0.05)
         
         if data['product_adoption_rate'][i] < 0.2:
             churn_prob += 0.20
