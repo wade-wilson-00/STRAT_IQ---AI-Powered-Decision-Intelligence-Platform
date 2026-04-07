@@ -1,9 +1,8 @@
 import pandas as pd
 import numpy as np
-
 np.random.seed(42)
 
-def generate_churn_data(n_samples=1000):
+def generate_churn_data(n_samples=8000):
     data = {
         'engagement_score': np.random.uniform(0, 1, n_samples),
         'nps_score': np.random.randint(0, 11, n_samples),
@@ -87,7 +86,7 @@ def generate_churn_data(n_samples=1000):
     return pd.DataFrame(data)
 
 if __name__ == '__main__':
-    df = generate_churn_data(n_samples=1000)
+    df = generate_churn_data(n_samples=8000)
     
     df.to_csv('data/churn_dataset.csv', index=False)
     

@@ -3,6 +3,7 @@ import joblib
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
+from churn_feature_engineering import ChurnFeatureEngineering
 from sklearn.metrics import accuracy_score,recall_score,f1_score,precision_score,roc_auc_score
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
@@ -11,7 +12,7 @@ class ChurnTrainer:
         pass
 
     def load_data(self):
-        self.df = pd.read_csv("C:/STRAT_IQ/data/updated_churn_data.xls")
+        self.df = pd.read_csv("C:/stratiq/data/churn_dataset.csv")
         return self.df
 
     def FeatureSelection(self):
@@ -35,9 +36,10 @@ class ChurnTrainer:
   
     def build_pipeline(self):
         self.pipeline = Pipeline([
+            ("feature_engineering", ChurnFeatureEngineering()),
             ("classifier", RandomForestClassifier(
-                n_estimators=150,
-                max_depth=15,
+                n_estimators=300,
+                max_depth=20,
                 min_samples_split=4,
                 min_samples_leaf=2,
                 random_state=42,

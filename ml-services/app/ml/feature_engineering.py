@@ -29,7 +29,7 @@ class FeatureEngineering(BaseEstimator, TransformerMixin):
 if __name__ == "__main__":
     transformer = FeatureEngineering()
 
-    df = pd.read_csv(r"c:\STRAT_IQ\data\startup_metrics (1).xls")
+    df = pd.read_csv(r"c:\stratiq\data\startup_metrics (1).xls")
     print(df)
 
     transformed_df = transformer.fit_transform(df)

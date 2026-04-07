@@ -12,7 +12,7 @@ class RevenueForecaster:
         pass
 
     def load_data(self):
-        self.df = pd.read_csv(r"c:\STRAT_IQ\data\startup_metrics (1).csv")
+        self.df = pd.read_csv(r"c:\stratiq\data\startup_metrics (1).csv")
         self.df = self.df.sort_values(by="month", ascending=True).reset_index(drop=True)
         self.df = self.df.drop(columns="month")
         return self.df
