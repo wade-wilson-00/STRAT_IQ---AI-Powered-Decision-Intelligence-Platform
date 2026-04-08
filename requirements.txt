@@ -5,4 +5,4 @@ numpy
 scikit-learn
 joblib
 anthropic
-dotenv
+python-dotenv

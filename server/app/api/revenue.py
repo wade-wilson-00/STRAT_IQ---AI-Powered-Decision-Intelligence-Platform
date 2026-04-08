@@ -1,28 +1,50 @@
-import joblib
-from fastapi import APIRouter
-import pandas as pd
 import os
 import sys
+import logging
+import joblib
+import pandas as pd
+from dotenv import load_dotenv
+from fastapi import APIRouter, HTTPException
+
 from app.schemas.forecast_schema import Revenue, Revenue_Response
+
+load_dotenv()
+
+PROJECT_ROOT = os.getenv("PROJECT_ROOT", ".")
+sys.path.append(os.path.join(PROJECT_ROOT, os.getenv("ML_MODULES_PATH", "")))
+
+logger = logging.getLogger(__name__)
+revenue_model = None
+
+try:
+    model_path = os.path.join(PROJECT_ROOT, os.getenv("REVENUE_MODEL_PATH", ""))
+    revenue_model = joblib.load(model_path)
+    logger.info("Revenue model loaded successfully from %s", model_path)
+except Exception as e:
+    logger.error("Failed to load revenue model: %s", e)
 
 router = APIRouter()
 
-sys.path.append(r"c:\stratiq\ml-services\app\ml")
-
-try:
-    revenue_model = joblib.load(r"c:\stratiq\ml-services\app\models\revenue_model_v1.pkl")
-    print("Model Loaded Successfully")
-except Exception as e:
-    print(f"Model Not loaded: {e}")
-    revenue_model = None
-
-@router.post("/predict/revenue",response_model=Revenue_Response)
+@router.post("/predict/revenue", response_model=Revenue_Response)
 def predict_revenue(data: Revenue):
-    df = pd.DataFrame([data.model_dump()])
-    prediction = revenue_model.predict(df)
-    predicted_mrr = prediction[0]
-    return Revenue_Response(
-        predicted_mrr = predicted_mrr,
-        status="Success"
-    )
+    if revenue_model is None:
+        logger.error("Revenue prediction requested but model is not loaded")
+        raise HTTPException(
+            status_code=503,
+            detail="Revenue model is currently unavailable. Please try again later.",
+        )
 
+    try:
+        df = pd.DataFrame([data.model_dump()])
+        prediction = revenue_model.predict(df)
+        predicted_mrr = float(prediction[0])
+
+        logger.info("Revenue prediction successful: %.2f", predicted_mrr)
+        return Revenue_Response(predicted_mrr=predicted_mrr, status="Success")
+
+    except Exception as e:
+        logger.error("Revenue prediction failed: %s", e, exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Prediction failed: {str(e)}",
+        )
