@@ -6,3 +6,9 @@ scikit-learn
 joblib
 anthropic
 python-dotenv
+huggingface_hub
+google-generativeai
+google-genai
+chromadb
+sentence-transformers
+langchain

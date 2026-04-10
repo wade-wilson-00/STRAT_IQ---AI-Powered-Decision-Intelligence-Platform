@@ -26,3 +26,4 @@ class Revenue(BaseModel):
 class Revenue_Response(BaseModel):
     predicted_mrr: float
     status: str
+    ai_insight:str

@@ -31,5 +31,6 @@ class ChurnClassifier(BaseModel):
 
 class ChurnResponse(BaseModel):
     churn_prediction: int
-    churn_probability: float
+    churn_probability: float = Field(..., description="Churn probability in percentage (0-100)")
     status: str
+    ai_insight:str

@@ -5,7 +5,7 @@ import joblib
 import pandas as pd
 from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException
-
+from app.services.llm_layer import LLM_Analyst 
 from app.schemas.forecast_schema import Revenue, Revenue_Response
 
 load_dotenv()
@@ -15,6 +15,7 @@ sys.path.append(os.path.join(PROJECT_ROOT, os.getenv("ML_MODULES_PATH", "")))
 
 logger = logging.getLogger(__name__)
 revenue_model = None
+llm_analyst = LLM_Analyst()
 
 try:
     model_path = os.path.join(PROJECT_ROOT, os.getenv("REVENUE_MODEL_PATH", ""))
@@ -38,9 +39,21 @@ def predict_revenue(data: Revenue):
         df = pd.DataFrame([data.model_dump()])
         prediction = revenue_model.predict(df)
         predicted_mrr = float(prediction[0])
+        status = "Success"
+
+        try:
+            ai_insight = llm_analyst.get_revenue_insight(
+                predicted_mrr, status
+            )
+        except Exception as e:
+            ai_insight = f"Model Unavailable {str(e)}"
 
         logger.info("Revenue prediction successful: %.2f", predicted_mrr)
-        return Revenue_Response(predicted_mrr=predicted_mrr, status="Success")
+        return Revenue_Response(
+            predicted_mrr=predicted_mrr,
+            status=status,
+            ai_insight=ai_insight,
+        )
 
     except Exception as e:
         logger.error("Revenue prediction failed: %s", e, exc_info=True)
