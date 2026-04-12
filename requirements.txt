@@ -12,3 +12,13 @@ google-genai
 chromadb
 sentence-transformers
 langchain
+langchain-core
+langchain-community
+transformers
+torch
+pypdf
+openai
+langchain-openai
+langchain-google-genai 
+langchain-text-splitters
+beautifulsoup4
