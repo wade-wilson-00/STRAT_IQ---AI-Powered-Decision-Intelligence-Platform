@@ -1,0 +1,28 @@
+SaaS Analytics FAQ
+
+Q: What is MRR?
+A: Monthly Recurring Revenue is the normalized recurring subscription revenue expected each month.
+
+Q: What is the difference between ARR and MRR?
+A: ARR is annual recurring revenue and is usually calculated as MRR multiplied by 12.
+
+Q: What is churn rate?
+A: Churn rate is the percentage of customers or revenue lost over a period.
+
+Q: What is NRR and why does it matter?
+A: Net Revenue Retention measures retained and expanded revenue from existing customers. NRR above 100% indicates expansion outpaces churn.
+
+Q: Is high growth always healthy?
+A: Not always. Growth with poor retention can hide long-term weakness in product value and unit economics.
+
+Q: How should teams act on churn predictions?
+A: Use risk tiers to trigger interventions, then measure retention uplift by cohort.
+
+Q: How often should forecasts be updated?
+A: At least monthly, and weekly for fast-changing environments.
+
+Q: What are common leading indicators of churn?
+A: Falling usage, low NPS, billing friction, and increased support pressure.
+
+Q: Can AI insights be wrong?
+A: Yes. Treat AI outputs as decision support and validate with business context and recent data.

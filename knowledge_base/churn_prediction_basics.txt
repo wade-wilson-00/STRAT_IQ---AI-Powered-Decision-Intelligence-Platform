@@ -1,0 +1,32 @@
+Churn Prediction Basics for SaaS
+
+Churn prediction estimates the likelihood that a customer account will cancel, downgrade, or become inactive.
+
+Why churn prediction matters:
+- Retention is usually cheaper than acquisition.
+- Churn strongly impacts LTV, cash flow, and growth efficiency.
+- Early risk detection enables targeted interventions.
+
+Typical churn outputs:
+- Binary classification (churn vs non-churn)
+- Churn probability score
+- Risk tier labels (low, medium, high)
+
+Common input signals:
+- Product engagement and usage frequency
+- NPS or satisfaction proxies
+- Support ticket volume
+- Contract term length and renewal timing
+- Payment failures or billing issues
+
+Operational best practices:
+- Review model calibration, not just accuracy.
+- Define action thresholds (for example >= 65% = high-risk playbook).
+- Pair predictions with intervention workflows.
+- Track post-intervention outcomes to close the loop.
+
+Pitfalls to avoid:
+- Using leaked features (data unavailable at prediction time).
+- Ignoring class imbalance in churn labels.
+- Assuming one threshold fits all customer segments.
+- No monitoring for drift in customer behavior.

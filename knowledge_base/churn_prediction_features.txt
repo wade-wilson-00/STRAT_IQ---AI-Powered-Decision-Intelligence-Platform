@@ -1,0 +1,43 @@
+Churn Prediction Feature Reference
+
+This document explains common churn model features and why they are useful.
+
+1) engagement_score
+Definition: normalized account engagement signal from product activity.
+Use: lower values usually correlate with higher churn risk.
+
+2) nps_score
+Definition: customer willingness to recommend product (0-10 scale).
+Use: low NPS often appears in at-risk cohorts.
+
+3) product_adoption_rate
+Definition: proportion of key features adopted by account users.
+Use: shallow adoption can signal weak product fit.
+
+4) payment_failures
+Definition: billing failure count within a recent period.
+Use: recurring payment issues increase involuntary churn risk.
+
+5) support_tickets_last_30d
+Definition: recent support workload for an account.
+Use: spikes may indicate friction or unresolved blockers.
+
+6) customer_age_months
+Definition: account tenure.
+Use: early-life accounts can have different churn patterns than mature accounts.
+
+7) cac_payback_months
+Definition: months needed to recover acquisition cost.
+Use: helps prioritize retention effort by economics.
+
+8) active_users_ratio
+Definition: active users divided by total licensed users.
+Use: low utilization can precede contraction or cancellation.
+
+9) contract_length_months
+Definition: subscription term length.
+Use: shorter terms can correlate with higher renewal uncertainty.
+
+10) churn_risk_flag
+Definition: existing rules-based risk marker.
+Use: combines deterministic heuristics with ML probability for triage.

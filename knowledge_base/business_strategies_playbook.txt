@@ -1,0 +1,32 @@
+SaaS Business Strategy Playbook
+
+Strategy 1: Improve Net Revenue Retention
+- Build expansion motions for healthy accounts.
+- Launch account health scoring and proactive outreach.
+- Tie CSM playbooks to usage and value milestones.
+
+Strategy 2: Reduce Early-Life Churn
+- Strengthen onboarding milestones in first 30-90 days.
+- Trigger at-risk alerts for low activation patterns.
+- Offer targeted enablement for low-adoption segments.
+
+Strategy 3: Increase Forecast Reliability
+- Use scenario planning (downside/base/upside).
+- Review forecast error monthly by segment.
+- Track assumptions in a shared operating log.
+
+Strategy 4: Align GTM and Product
+- Prioritize roadmap items linked to retention drivers.
+- Share churn reasons across sales, success, and product.
+- Build closed-loop feedback from support and NPS.
+
+Strategy 5: Optimize Unit Economics
+- Segment CAC and payback by channel and persona.
+- Shift budget toward high-LTV cohorts.
+- Rebalance discounts that weaken long-term expansion.
+
+Prioritization framework:
+- High impact + low effort: execute immediately.
+- High impact + high effort: plan as strategic initiatives.
+- Low impact + low effort: bundle into operational cadence.
+- Low impact + high effort: defer unless strategic dependency.
