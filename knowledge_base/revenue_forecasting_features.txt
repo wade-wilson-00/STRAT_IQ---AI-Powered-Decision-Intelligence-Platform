@@ -1,39 +1,86 @@
-Revenue Forecasting Feature Reference
+DOCUMENT TYPE: Technical Reference — Revenue Forecasting Feature Definitions
+PURPOSE: Defines each input feature used in SaaS revenue forecasting models. For each feature, this document provides its name, a precise definition, its role in the forecasting pipeline, and quality requirements. Use this document to answer questions about what specific model inputs mean and how they affect revenue projections.
 
-The following features are commonly used in SaaS revenue prediction pipelines.
+---
 
-1) current_mrr
-Definition: current monthly recurring revenue baseline.
-Why it matters: primary anchor value for forward projection.
+FEATURE DEFINITIONS
 
-2) mrr_growth_rate
-Definition: expected monthly growth percentage from new and existing revenue.
-Why it matters: drives trajectory slope in forecast windows.
+---
 
-3) churn_rate
-Definition: monthly revenue loss percentage from cancellations or downgrades.
-Why it matters: directly offsets growth and influences net retention.
+FEATURE: current_mrr
+Type: Continuous (positive float, in currency units)
+Definition: The current month's Monthly Recurring Revenue — the total normalized recurring subscription revenue active as of the forecast start date.
+Role in forecasting: This is the baseline anchor value for all forward projections. Every projected future MRR is derived by applying growth, churn, and expansion rates to this starting figure. Errors in current_mrr propagate through the entire forecast.
+Quality requirement: Must exclude one-time charges, professional services fees, and non-recurring revenue. Validate against billing system data before model input.
 
-4) expansion_rate
-Definition: revenue expansion from upsells, cross-sells, and seat growth.
-Why it matters: can compensate for gross churn and improve NRR.
+---
 
-5) months
-Definition: forecast horizon in months.
-Why it matters: longer horizons increase uncertainty and scenario spread.
+FEATURE: mrr_growth_rate
+Type: Continuous (decimal percentage, e.g., 0.05 = 5% monthly growth)
+Definition: The expected monthly percentage increase in MRR from new customer acquisition and net new bookings.
+Role in forecasting: Drives the upward slope of the forecast trajectory. A higher growth rate compounds significantly over multi-month horizons. This figure should reflect realistic pipeline conversion and sales capacity, not aspirational targets.
+Quality requirement: Distinguish between historical observed growth rate and forward-looking projected growth rate. These may differ due to changes in sales team size, market conditions, or pricing. Document which is being used.
 
-6) previous_revenues
-Definition: historical monthly revenue sequence.
-Why it matters: captures trend momentum and volatility patterns.
+---
 
-Derived metrics often shown to users:
-- net_revenue_retention
-- annual_run_rate
-- ltv_cac_ratio
-- months_to_target
+FEATURE: churn_rate
+Type: Continuous (decimal percentage, e.g., 0.02 = 2% monthly churn)
+Definition: The monthly percentage of current MRR lost from customer cancellations and subscription downgrades.
+Role in forecasting: Churn directly offsets the growth rate. At a 5% monthly growth rate and 3% monthly churn, net MRR growth is approximately 2% per month before expansion. Even small increases in churn rate meaningfully reduce forecast outcomes over 6–12 month horizons due to compounding.
+Quality requirement: Use gross revenue churn (not logo churn) for MRR modeling. Segment churn rates by customer tier if rates vary significantly across segments, and use segment-weighted averages for aggregate forecasts.
 
-Feature quality checklist:
-- Use consistent units and time windows.
-- Clamp impossible values (for example negative MRR).
-- Handle missing history explicitly.
-- Validate percentage fields before model inference.
+---
+
+FEATURE: expansion_rate
+Type: Continuous (decimal percentage, e.g., 0.01 = 1% monthly expansion)
+Definition: The monthly percentage increase in MRR from existing customers through upsells, cross-sells, and additional seat purchases.
+Role in forecasting: Expansion revenue adds to MRR from the existing base independently of new logo acquisition. In businesses with NRR above 100%, expansion_rate exceeds churn_rate, meaning the existing customer base grows on its own. Expansion rate is one of the most powerful levers in a SaaS forecast because it scales with the existing revenue base.
+Quality requirement: Distinguish between expansion from existing contracts (seat growth) versus new upsell motions (product tier upgrades). Both count but may have different predictability.
+
+---
+
+FEATURE: months
+Type: Discrete (positive integer)
+Definition: The forecast horizon expressed in number of months from the current date.
+Role in forecasting: Determines how many compounding periods the model projects across. Longer horizons increase the cumulative effect of small errors in growth and churn assumptions. At 3 months, a 1% overestimate of growth rate has a small impact. At 24 months, the same error creates a materially misleading forecast.
+Quality requirement: Clearly state the forecast start date and end date corresponding to this value. Forecasts beyond 12 months should be presented as scenario ranges, not point estimates.
+
+---
+
+FEATURE: previous_revenues
+Type: Time series (ordered list of monthly MRR values, each a positive float)
+Definition: A sequential record of historical monthly MRR values, ordered from oldest to most recent, ending at the current period.
+Role in forecasting: Captures recent growth trend and revenue volatility. The sequence allows the model to detect whether the business is accelerating, decelerating, or growing at a stable rate. It also enables identification of seasonal patterns and anomalies (e.g., a one-time spike from an unusually large annual deal).
+Quality requirement: Ensure consistent time granularity (monthly), consistent revenue definitions across the historical period, and explicit handling of gaps. Flag any periods where revenue definition changed (e.g., a business model shift or acquisition) so the model does not learn a false trend.
+
+---
+
+DERIVED OUTPUT METRICS (shown to end users)
+
+These values are computed from the feature inputs above and presented as forecast outputs:
+
+net_revenue_retention (NRR):
+How to interpret: Expressed as a percentage. NRR above 100% means existing customers are growing in aggregate. NRR below 100% means churn exceeds expansion.
+Formula: NRR = (MRR retained + MRR expanded) / MRR at start of period × 100
+
+annual_run_rate (ARR):
+How to interpret: Expresses the current monthly run rate in annual terms.
+Formula: ARR = current_mrr × 12
+
+ltv_cac_ratio:
+How to interpret: The ratio of estimated Customer Lifetime Value to Customer Acquisition Cost. A ratio above 3.0 is generally considered healthy for SaaS businesses.
+Formula: LTV = Average MRR per customer / churn_rate; LTV:CAC = LTV / CAC
+
+months_to_target:
+How to interpret: The number of months required to reach a target MRR figure given current growth and churn assumptions.
+Formula: Solved iteratively from the projected MRR compounding sequence.
+
+---
+
+FEATURE QUALITY CHECKLIST (apply before model inference)
+
+- Use consistent units: all revenue figures in the same currency; all rates as decimals, not percentages.
+- Clamp impossible values: MRR cannot be negative; rates cannot exceed 1.0 for monthly compounding models.
+- Handle missing historical data explicitly: do not interpolate missing months silently; flag them for review.
+- Validate percentage fields: churn_rate and expansion_rate should reflect monthly rates, not annual rates mistakenly entered as monthly.
+- Check growth rate reasonableness: monthly growth rates above 15–20% are unusual; flag for manual confirmation before using in automated forecasts.

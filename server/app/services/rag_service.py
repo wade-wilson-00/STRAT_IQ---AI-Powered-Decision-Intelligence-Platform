@@ -25,4 +25,11 @@ class RAG_Service:
             persist_directory=".knowledge_base/chroma_langchain_db",
         )
     
-    def load_data(self, file_path:str):
+    def load_data(self):
+
+        self.text_loader = TextLoader(
+            file_path ="./knowledge_base",
+            encoding ="utf-8"
+        )
+
+        

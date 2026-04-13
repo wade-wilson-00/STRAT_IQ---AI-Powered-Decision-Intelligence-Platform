@@ -1,32 +1,79 @@
-Churn Prediction Basics for SaaS
+DOCUMENT TYPE: Conceptual Reference — Churn Prediction Fundamentals
+PURPOSE: Explains what churn prediction is, why it matters in SaaS, how outputs are structured, what signals are used as inputs, and how to operationalize predictions responsibly. Use this document to answer foundational questions about churn modeling and risk management.
 
-Churn prediction estimates the likelihood that a customer account will cancel, downgrade, or become inactive.
+---
 
-Why churn prediction matters:
-- Retention is usually cheaper than acquisition.
-- Churn strongly impacts LTV, cash flow, and growth efficiency.
-- Early risk detection enables targeted interventions.
+WHAT IS CHURN PREDICTION?
+Churn prediction is the process of estimating the likelihood that a customer account will cancel their subscription, downgrade to a lower tier, or become inactive within a defined future time window.
 
-Typical churn outputs:
-- Binary classification (churn vs non-churn)
-- Churn probability score
-- Risk tier labels (low, medium, high)
+It is a classification problem: given a set of account signals at a point in time, the model predicts whether that account is at risk of churning before its next renewal or within a rolling period.
 
-Common input signals:
-- Product engagement and usage frequency
-- NPS or satisfaction proxies
-- Support ticket volume
-- Contract term length and renewal timing
-- Payment failures or billing issues
+---
 
-Operational best practices:
-- Review model calibration, not just accuracy.
-- Define action thresholds (for example >= 65% = high-risk playbook).
-- Pair predictions with intervention workflows.
-- Track post-intervention outcomes to close the loop.
+WHY CHURN PREDICTION MATTERS IN SAAS
 
-Pitfalls to avoid:
-- Using leaked features (data unavailable at prediction time).
-- Ignoring class imbalance in churn labels.
-- Assuming one threshold fits all customer segments.
-- No monitoring for drift in customer behavior.
+1. Retention is cheaper than acquisition.
+   Acquiring a new customer typically costs 5–7x more than retaining an existing one. Predictive models allow teams to intervene before a customer decides to leave.
+
+2. Churn directly degrades key SaaS metrics.
+   High churn reduces Customer Lifetime Value (LTV), weakens Net Revenue Retention (NRR), increases CAC payback periods, and reduces cash flow predictability.
+
+3. Early detection enables targeted intervention.
+   Without prediction, teams react to churn after it happens. With prediction, they can act on at-risk signals days or weeks before cancellation intent becomes firm.
+
+---
+
+TYPES OF CHURN MODEL OUTPUTS
+
+- Binary classification: The model predicts one of two outcomes — "will churn" or "will not churn" within the target period.
+- Churn probability score: A continuous value between 0 and 1 representing the model's confidence that an account will churn. Higher scores indicate greater risk.
+- Risk tier labels: Accounts are grouped into labeled buckets (e.g., Low Risk, Medium Risk, High Risk) based on probability thresholds. Risk tiers are the most operationally useful format for CSM workflows.
+
+---
+
+COMMON INPUT SIGNALS FOR CHURN MODELS
+
+The following categories of features are most predictive of churn:
+
+Product engagement signals:
+- Login frequency, feature usage depth, and session activity indicate whether the customer is actively deriving value from the product.
+
+Satisfaction proxies:
+- NPS scores and CSAT ratings reflect perceived value. Declining scores often precede churn.
+
+Support behavior:
+- A spike in support ticket volume may indicate unresolved friction, technical blockers, or user frustration.
+
+Contract and billing signals:
+- Short contract terms, approaching renewal dates, and payment failures all increase the probability of involuntary or voluntary churn.
+
+Account health indicators:
+- The ratio of active users to total licensed seats indicates utilization. Low utilization is a leading indicator of contraction or cancellation.
+
+---
+
+OPERATIONAL BEST PRACTICES
+
+1. Review model calibration, not just accuracy.
+   A model can have high accuracy on imbalanced data while being poorly calibrated. Calibration tells you whether a predicted 70% churn probability actually corresponds to roughly 70% of accounts churning. Use calibration curves alongside standard metrics.
+
+2. Define explicit action thresholds.
+   Example: accounts with a churn probability >= 65% trigger the high-risk CSM intervention playbook. Thresholds must be set deliberately and reviewed regularly, not left as defaults.
+
+3. Pair predictions with intervention workflows.
+   A churn score without a defined action is not useful. Every risk tier should map to a specific CSM or automated response: outreach cadence, success plan, escalation path, or win-back offer.
+
+4. Track post-intervention outcomes.
+   Measure whether interventions actually reduced churn for at-risk accounts. This closes the feedback loop and allows the model and playbooks to improve over time.
+
+---
+
+COMMON PITFALLS TO AVOID
+
+- Using leaked features: Do not include data that would not be available at prediction time in a real deployment (e.g., cancellation reason codes). This inflates model performance in testing but fails in production.
+
+- Ignoring class imbalance: Churn events are typically rare (2–10% monthly for most SaaS businesses). Training a model on imbalanced data without adjustment will result in a model that rarely predicts churn.
+
+- Applying a single threshold across all segments: Enterprise accounts and SMB accounts have different churn dynamics. A threshold calibrated for one segment may perform poorly for another.
+
+- Not monitoring for behavior drift: Customer behavior patterns change over time (e.g., after a product redesign or market shift). A model trained 18 months ago may no longer reflect current churn drivers. Schedule regular drift monitoring and retraining.

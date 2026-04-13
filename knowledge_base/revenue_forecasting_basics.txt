@@ -1,32 +1,87 @@
-Revenue Forecasting Basics for SaaS
+DOCUMENT TYPE: Conceptual Reference — Revenue Forecasting Fundamentals for SaaS
+PURPOSE: Explains the core concepts, inputs, methods, and best practices for forecasting recurring revenue in a SaaS business. Use this document to answer questions about how MRR forecasting works, what metrics it depends on, and how to build reliable projections.
 
-Revenue forecasting estimates future Monthly Recurring Revenue (MRR) and cash performance using historical and current operating signals.
+---
 
-Core concepts:
-- MRR: normalized monthly recurring subscription revenue.
-- ARR: annualized recurring revenue (MRR x 12).
-- Net Revenue Retention (NRR): ability to retain and expand existing customer revenue.
-- Gross churn vs net churn: revenue lost before and after expansion revenue.
+WHAT IS REVENUE FORECASTING IN SAAS?
+Revenue forecasting in SaaS is the process of estimating future Monthly Recurring Revenue (MRR) and cash performance over a defined time horizon. Forecasts are built using a combination of historical revenue trends and current operating signals such as churn rate, expansion rate, and growth trajectory.
 
-Common SaaS forecasting inputs:
-- Current MRR
-- Historical growth rate
-- Churn rate
-- Expansion or upsell rate
-- Marketing spend trends
-- Customer acquisition cost (CAC)
+Unlike one-time sales businesses, SaaS revenue is contractual and recurring — which means it can be modeled with more structure and regularity. However, forecasts still carry meaningful uncertainty, especially over longer horizons.
 
-Simple directional forecasting:
-Projected MRR is often estimated by combining growth and churn effects over a monthly horizon. Even simple models are useful when assumptions are clearly documented and reviewed regularly.
+---
 
-Forecasting best practices:
-- Re-forecast on a fixed cadence (weekly or monthly).
-- Use scenario bands: conservative, base, and aggressive.
-- Separate topline projection from confidence level.
-- Record assumptions and compare forecast vs actuals.
+CORE METRIC DEFINITIONS
 
-Common pitfalls:
-- Treating one-time revenue as recurring.
-- Ignoring contraction within existing accounts.
-- Overfitting to short-term seasonal spikes.
-- Failing to adjust assumptions after market changes.
+MRR (Monthly Recurring Revenue):
+The normalized monthly revenue from active subscriptions. MRR excludes one-time fees, professional services, and non-recurring charges. It is the primary building block of all SaaS forecasts.
+
+ARR (Annual Recurring Revenue):
+ARR = MRR × 12. It is used to express the scale of a recurring revenue business in annual terms. ARR is useful for investor communication and annual planning, but MRR is the correct unit for monthly modeling.
+
+Gross Churn:
+The percentage of MRR lost each month from cancellations and downgrades, before accounting for any expansion revenue. Gross churn is always a loss.
+
+Net Churn (or Net Revenue Retention — NRR):
+NRR adjusts gross churn by adding back expansion revenue (upsells, cross-sells, seat growth) from existing customers.
+- NRR above 100%: expansion revenue exceeds churn. The existing customer base is growing on its own.
+- NRR below 100%: churn exceeds expansion. The business is shrinking within its existing customer base, regardless of new logo acquisition.
+
+---
+
+COMMON INPUTS TO A SAAS REVENUE FORECAST
+
+The following variables drive most SaaS MRR projection models:
+
+1. Current MRR — the starting point of the forecast.
+2. Historical growth rate — the recent monthly rate of new MRR added from new customers.
+3. Churn rate — the monthly percentage of MRR lost to cancellations and downgrades.
+4. Expansion rate — the monthly percentage of additional MRR added from existing customers through upsells or seat growth.
+5. Marketing spend trends — forward-looking investment signals that affect new customer acquisition volume.
+6. Customer Acquisition Cost (CAC) — used to estimate conversion efficiency from spend to new MRR.
+
+---
+
+HOW SIMPLE MRR PROJECTION WORKS
+
+A directional MRR forecast compounds the effects of growth and churn month by month:
+
+For each month:
+  New MRR = Previous MRR × growth_rate
+  Lost MRR = Previous MRR × churn_rate
+  Expansion MRR = Previous MRR × expansion_rate
+  Projected MRR = Previous MRR + New MRR - Lost MRR + Expansion MRR
+
+Even simple models like this produce useful outputs when the underlying assumptions are explicitly documented, regularly reviewed, and compared against actuals.
+
+Important: more complex models (e.g., cohort-based forecasts, ML-driven predictions) are not necessarily more accurate than simple models if the inputs are poorly maintained or assumptions are not reviewed.
+
+---
+
+FORECASTING BEST PRACTICES
+
+1. Use scenario bands, not a single number.
+   Produce at least three scenarios per forecast cycle: conservative (downside), base, and aggressive (upside). Single-point forecasts create false precision. Scenario bands communicate the realistic range of outcomes and help teams plan contingencies.
+
+2. Separate projection from confidence level.
+   The projected MRR number and the confidence in that number are two different things. Always document both. A high-confidence conservative forecast is more operationally useful than an optimistic forecast with weak foundations.
+
+3. Re-forecast on a fixed cadence.
+   For most SaaS businesses, monthly re-forecasting is the minimum. Fast-growing or fast-churning businesses may need weekly updates.
+
+4. Document all assumptions.
+   Every forecast depends on assumptions: growth rate, churn rate, expansion rate, pipeline conversion. These assumptions should be written down, versioned, and reviewed monthly by comparing forecast vs. actuals. Untracked assumptions become invisible errors.
+
+5. Track forecast error by segment.
+   Disaggregate forecast error by customer segment (e.g., SMB, Mid-Market, Enterprise). Aggregate forecast accuracy can mask systematic errors in a specific segment that compound over time.
+
+---
+
+COMMON FORECASTING PITFALLS
+
+- Treating one-time revenue as recurring: Professional services fees, implementation charges, and one-time bonuses inflate apparent MRR. These must be stripped before modeling.
+
+- Ignoring contraction within existing accounts: Downgrades from existing customers reduce MRR even without cancellations. A model that only tracks new ARR and full cancellations will systematically overestimate revenue.
+
+- Overfitting to seasonal spikes: A strong Q4 driven by annual contract renewals does not mean Q1 growth will continue at that rate. Separate seasonal patterns from underlying trend.
+
+- Failing to update assumptions after market changes: If macroeconomic conditions shift, a key competitor enters the market, or a major product issue occurs, historical growth and churn rates are no longer valid predictors. Assumptions must be manually reviewed and updated.

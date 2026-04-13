@@ -1,43 +1,86 @@
-Churn Prediction Feature Reference
+DOCUMENT TYPE: Technical Reference — Churn Prediction Feature Definitions
+PURPOSE: Defines each feature used in SaaS churn prediction models. For each feature, this document provides its name, a precise definition, the data it represents, and its predictive relevance. Use this document to answer questions about what specific model inputs mean and why they are included.
 
-This document explains common churn model features and why they are useful.
+---
 
-1) engagement_score
-Definition: normalized account engagement signal from product activity.
-Use: lower values usually correlate with higher churn risk.
+FEATURE DEFINITIONS
 
-2) nps_score
-Definition: customer willingness to recommend product (0-10 scale).
-Use: low NPS often appears in at-risk cohorts.
+---
 
-3) product_adoption_rate
-Definition: proportion of key features adopted by account users.
-Use: shallow adoption can signal weak product fit.
+FEATURE: engagement_score
+Type: Continuous (normalized, typically 0–1 or 0–100)
+Definition: A composite, normalized signal derived from product activity events such as login frequency, feature interactions, and session depth over a defined lookback window.
+Predictive relevance: Lower engagement scores strongly correlate with higher churn risk. An account that has recently become less active than its historical baseline is a leading indicator of disengagement and potential cancellation.
+Usage note: Normalization method and lookback window should be consistent across training and inference.
 
-4) payment_failures
-Definition: billing failure count within a recent period.
-Use: recurring payment issues increase involuntary churn risk.
+---
 
-5) support_tickets_last_30d
-Definition: recent support workload for an account.
-Use: spikes may indicate friction or unresolved blockers.
+FEATURE: nps_score
+Type: Ordinal integer (0–10 scale)
+Definition: The customer's Net Promoter Score, representing their stated willingness to recommend the product to others. Scores 0–6 are detractors, 7–8 are passives, 9–10 are promoters.
+Predictive relevance: Low NPS scores (detractors) appear disproportionately in at-risk cohorts. NPS alone is not sufficient to predict churn but adds meaningful signal when combined with behavioral features.
+Usage note: NPS data may be sparse if not regularly collected. Impute or flag missing values explicitly.
 
-6) customer_age_months
-Definition: account tenure.
-Use: early-life accounts can have different churn patterns than mature accounts.
+---
 
-7) cac_payback_months
-Definition: months needed to recover acquisition cost.
-Use: helps prioritize retention effort by economics.
+FEATURE: product_adoption_rate
+Type: Continuous (proportion, 0.0–1.0)
+Definition: The fraction of key product features that have been actively used by at least one account user within a defined recent period.
+Predictive relevance: Shallow adoption (low proportion of features used) signals weak product-market fit at the account level. Accounts relying on only one or two core features are more vulnerable to switching if a competitor addresses that narrow use case.
+Usage note: "Key features" must be defined and updated as the product evolves.
 
-8) active_users_ratio
-Definition: active users divided by total licensed users.
-Use: low utilization can precede contraction or cancellation.
+---
 
-9) contract_length_months
-Definition: subscription term length.
-Use: shorter terms can correlate with higher renewal uncertainty.
+FEATURE: payment_failures
+Type: Count (non-negative integer)
+Definition: The number of billing failures recorded for the account within a recent rolling period (e.g., the last 60 days).
+Predictive relevance: Repeated payment failures are a direct precursor to involuntary churn — where the customer is lost due to billing issues rather than dissatisfaction. Even one failure can signal account instability.
+Usage note: Distinguish between payment failures that were subsequently resolved versus those that remain open when computing this feature.
 
-10) churn_risk_flag
-Definition: existing rules-based risk marker.
-Use: combines deterministic heuristics with ML probability for triage.
+---
+
+FEATURE: support_tickets_last_30d
+Type: Count (non-negative integer)
+Definition: The total number of support tickets submitted by the account in the last 30 days.
+Predictive relevance: A recent spike in support volume may indicate unresolved technical friction, poor onboarding, or growing user frustration. However, this feature must be interpreted carefully — very low ticket counts can also indicate disengagement rather than satisfaction.
+Usage note: Consider pairing this feature with ticket resolution rate or sentiment to improve signal quality.
+
+---
+
+FEATURE: customer_age_months
+Type: Continuous (non-negative integer or float)
+Definition: The number of months since the account first became a paying customer.
+Predictive relevance: Churn patterns differ significantly by account tenure. Early-life accounts (0–6 months) are at highest risk due to incomplete onboarding. Mature accounts (24+ months) often have lower churn rates but higher revenue impact when they do churn. Segment-specific thresholds may be needed.
+Usage note: Do not treat this as a linear feature without testing non-linear transformations or segmentation.
+
+---
+
+FEATURE: cac_payback_months
+Type: Continuous (positive float)
+Definition: The estimated number of months required to recover the customer acquisition cost (CAC) from that account's recurring revenue.
+Predictive relevance: This feature contextualizes the economic priority of retaining a given account. Accounts with long payback periods that also show high churn risk represent the greatest financial exposure. It is useful for prioritizing CSM intervention effort, not as a direct churn signal.
+Usage note: Requires reliable CAC attribution data by account or segment. May not be available at the account level for all businesses.
+
+---
+
+FEATURE: active_users_ratio
+Type: Continuous (proportion, 0.0–1.0)
+Definition: The proportion of licensed user seats that have been active within a defined recent period (e.g., last 30 days).
+Predictive relevance: A low ratio means the customer is paying for seats that are going unused. This underutilization is a strong leading indicator of contraction (downgrades) or full cancellation, particularly at renewal. It also signals that the account sponsor may struggle to justify the contract internally.
+Usage note: Define "active" precisely (e.g., at least one login in the last 30 days).
+
+---
+
+FEATURE: contract_length_months
+Type: Discrete (positive integer)
+Definition: The length of the customer's current subscription contract in months (e.g., 1 = month-to-month, 12 = annual, 24 = two-year).
+Predictive relevance: Shorter contract terms are associated with higher renewal uncertainty. Month-to-month customers can churn at any time with little friction. Annual customers are locked in but may not renew if value delivery is insufficient.
+Usage note: Combine with contract end date proximity features for time-sensitive risk scoring.
+
+---
+
+FEATURE: churn_risk_flag
+Type: Binary (0 or 1) or categorical (Low / Medium / High)
+Definition: An existing rules-based risk marker generated by deterministic business logic (e.g., if active_users_ratio < 0.3 AND support_tickets_last_30d > 5, flag as high risk).
+Predictive relevance: Acts as a complementary signal alongside ML probability scores. Rules-based flags encode business-specific thresholds that may not emerge naturally from training data. Combining this flag with an ML score improves triage accuracy and provides an interpretable fallback when the model is uncertain.
+Usage note: Document the rules underlying this flag and update them when business logic changes to avoid silent staleness.
