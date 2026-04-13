@@ -1,0 +1,39 @@
+Revenue Forecasting Feature Reference
+
+The following features are commonly used in SaaS revenue prediction pipelines.
+
+1) current_mrr
+Definition: current monthly recurring revenue baseline.
+Why it matters: primary anchor value for forward projection.
+
+2) mrr_growth_rate
+Definition: expected monthly growth percentage from new and existing revenue.
+Why it matters: drives trajectory slope in forecast windows.
+
+3) churn_rate
+Definition: monthly revenue loss percentage from cancellations or downgrades.
+Why it matters: directly offsets growth and influences net retention.
+
+4) expansion_rate
+Definition: revenue expansion from upsells, cross-sells, and seat growth.
+Why it matters: can compensate for gross churn and improve NRR.
+
+5) months
+Definition: forecast horizon in months.
+Why it matters: longer horizons increase uncertainty and scenario spread.
+
+6) previous_revenues
+Definition: historical monthly revenue sequence.
+Why it matters: captures trend momentum and volatility patterns.
+
+Derived metrics often shown to users:
+- net_revenue_retention
+- annual_run_rate
+- ltv_cac_ratio
+- months_to_target
+
+Feature quality checklist:
+- Use consistent units and time windows.
+- Clamp impossible values (for example negative MRR).
+- Handle missing history explicitly.
+- Validate percentage fields before model inference.

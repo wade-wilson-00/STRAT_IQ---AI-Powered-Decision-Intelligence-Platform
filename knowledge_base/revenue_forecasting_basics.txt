@@ -1,0 +1,32 @@
+Revenue Forecasting Basics for SaaS
+
+Revenue forecasting estimates future Monthly Recurring Revenue (MRR) and cash performance using historical and current operating signals.
+
+Core concepts:
+- MRR: normalized monthly recurring subscription revenue.
+- ARR: annualized recurring revenue (MRR x 12).
+- Net Revenue Retention (NRR): ability to retain and expand existing customer revenue.
+- Gross churn vs net churn: revenue lost before and after expansion revenue.
+
+Common SaaS forecasting inputs:
+- Current MRR
+- Historical growth rate
+- Churn rate
+- Expansion or upsell rate
+- Marketing spend trends
+- Customer acquisition cost (CAC)
+
+Simple directional forecasting:
+Projected MRR is often estimated by combining growth and churn effects over a monthly horizon. Even simple models are useful when assumptions are clearly documented and reviewed regularly.
+
+Forecasting best practices:
+- Re-forecast on a fixed cadence (weekly or monthly).
+- Use scenario bands: conservative, base, and aggressive.
+- Separate topline projection from confidence level.
+- Record assumptions and compare forecast vs actuals.
+
+Common pitfalls:
+- Treating one-time revenue as recurring.
+- Ignoring contraction within existing accounts.
+- Overfitting to short-term seasonal spikes.
+- Failing to adjust assumptions after market changes.
