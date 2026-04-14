@@ -20,9 +20,9 @@ class RAG_Service:
         )
 
         self.vectorstore = Chroma(
-            collection_name="example_collection",
+            collection_name="stratiq_knowledge_base",
             embedding_function = self.embeddings,
-            persist_directory="knowledge_base/chroma_langchain_db",
+            persist_directory=os.getenv("CHROMA_PERSIST_DIRECTORY_PATH"),
         )
     
     def load_data(self):
@@ -89,8 +89,29 @@ class RAG_Service:
             print(f"Text: {self.chunked_docs[0].page_content[:200]}...")
     
             print(f"\n--- Last Chunk ---\nMeta: {self.chunked_docs[-1].metadata}")
-            print(f"Text: {self.chunked_docs[-1].page_content[:200]}...")
+            print(f"Text: {self.chunked_docs[-1].page_content[:200]}...") 
+        
+    def vector_store(self):
+        chunk_length = len(self.chunked_docs)
 
+        if chunk_length > 0:
+            print("Chunked Data Exists")
+        else:
+            self.load_data()
+            self.chunking_data()
+        
+        ids = [doc.metadata["chunk_id"] for doc in self.chunked_docs]
 
+        self.stored_docs = self.vectorstore.add_documents(
+            documents= self.chunked_docs,
+            ids = ids
+        )
+        
+        chunks_to_store = len(self.chunked_docs)
+        print("Chunks to Store : ",chunks_to_store)
 
+        unique_ids = len(set(ids))
+        print(f"Unique Ids - {unique_ids}")
 
+        stored_count = len(self.stored_docs)
+        print(f"Stored Count of Chunks in DB: {stored_count}")
