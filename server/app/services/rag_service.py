@@ -115,21 +115,87 @@ class RAG_Service:
         stored_count = len(self.stored_docs)
         print(f"Stored Count of Chunks in DB: {stored_count}")
     
-    def retriever(self, query:str, top_k: int=4):
-        if not query:
-            return f"Enter some query"
-        
-        if not hasattr(self, "stored_docs"):
-            self.load_data()
-            self.chunking_data()
-            self.vector_store()
+    def ensure_index_ready(self, reindex: bool = False):
 
-        self.retrieve_context = self.vectorstore.similarity_search(
+        existing_count = 0
+        try:
+            existing_count = self.vectorstore._collection.count()
+        except Exception:
+            existing_count = 0
+
+        if reindex:
+            try:
+                self.vectorstore._collection.delete(where={})
+                print("Reindex enabled: cleared existing vectors.")
+                existing_count = 0
+            except Exception as e:
+                print(f"Reindex warning: could not clear collection: {e}")
+
+        if existing_count > 0:
+            print(f"Index ready: collection already has {existing_count} vectors.")
+            return
+            
+        self.load_data()
+        self.chunking_data()
+        self.vector_store()
+    
+    def retriever(self, query:str, top_k: int=4):
+        if not query or not query.strip():
+            return {
+                "chunks": [],
+                "sources": [],
+                "metrics": {
+                    "top_k": top_k,
+                    "hits": 0,
+            }
+        }
+
+        self.ensure_index_ready(reindex=False)
+
+        docs = self.vectorstore.similarity_search(
             query=query,
             k = top_k
         )
+        chunks = []
+        sources = []
 
-        return self.retrieve_context 
+        for doc in docs:
+            source = doc.metadata.get("source","unknown")
+
+            chunks.append({
+                "text": doc.page_content,
+                "source": source,
+                "chunk_id": doc.metadata.get("chunk_id"),
+                "chunk_index": doc.metadata.get("chunk_index"),
+                "chunk_chars": doc.metadata.get("chunk_chars")
+            })
+
+            if source not in sources:
+                sources.append(source)
+        
+        retrieval_result = {
+            "chunks":chunks,
+            "sources": sources,
+            "metrics":{
+                "top_k": top_k,
+                "hits": len(chunks),
+            }
+        }
+        return retrieval_result
+    
+    def build_context_package(self, retrieval_result, max_chunks=4, max_chars=4000):
+
+        chunks = retrieval_result["chunks"]
+        context_parts = []
+        used_sources = []
+        total_chars = 0
+
+        for chunk in chunks[:max_chunks]:
+            text = chunk["text"]
+            source = chunk["source"]
+
+
+
         
         
 
