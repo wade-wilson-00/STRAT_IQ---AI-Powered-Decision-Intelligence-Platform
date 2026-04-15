@@ -194,6 +194,32 @@ class RAG_Service:
             text = chunk["text"]
             source = chunk["source"]
 
+            if not text or not text.strip(): continue
+
+            context_block = f"[Source: {source}]\n{text}"
+            context_block_length = len(context_block)
+
+            if total_chars + context_block_length > max_chars: break
+            context_parts.append(context_block)
+
+            total_chars += context_block_length
+
+            if source not in used_sources:
+                used_sources.append(source)
+
+        return {
+            "context_text": "\n\n".join(context_parts),
+            "sources": used_sources,
+            "context_metrics": {
+                "chunks_used": len(context_parts),
+                "context_chars": total_chars,
+            }
+        }
+
+
+
+
+
 
 
         
