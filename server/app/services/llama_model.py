@@ -15,15 +15,19 @@ class MetaModel:
             model= os.getenv("META_LLAMA_MODEL"),
             messages=[
                 {
-                "role": "user",
+                "role": str(role),
                 "content":str(content)
                 }
             ],
         )
 
-        print(self.completion.choices[0].message.content)
+        assistant_text = self.completion.choices[0].message.content
+        return assistant_text
 
 if __name__ == "__main__":
 
     model = MetaModel()
-    model.llm_brain(role="user", content="Explain me about MRR in SaaS?")
+    model.llm_brain(
+        role="user", 
+        content="Explain me about MRR in SaaS?"
+    )

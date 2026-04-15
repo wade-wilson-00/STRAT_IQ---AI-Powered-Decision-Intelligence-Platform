@@ -1,7 +1,6 @@
 import os
 import numpy as np
 from dotenv import load_dotenv
-from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
@@ -24,7 +23,7 @@ class RAG_Service:
             embedding_function = self.embeddings,
             persist_directory=os.getenv("CHROMA_PERSIST_DIRECTORY_PATH"),
         )
-    
+        
     def load_data(self):
         #Loading Text Documents
         try:
@@ -115,3 +114,27 @@ class RAG_Service:
 
         stored_count = len(self.stored_docs)
         print(f"Stored Count of Chunks in DB: {stored_count}")
+    
+    def retriever(self, query:str, top_k: int=4):
+        if not query:
+            return f"Enter some query"
+        
+        if not hasattr(self, "stored_docs"):
+            self.load_data()
+            self.chunking_data()
+            self.vector_store()
+
+        self.retrieve_context = self.vectorstore.similarity_search(
+            query=query,
+            k = top_k
+        )
+
+        return self.retrieve_context 
+        
+        
+
+
+        
+
+
+        
