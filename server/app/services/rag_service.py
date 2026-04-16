@@ -243,10 +243,18 @@ class RAG_Service:
         --- YOUR ANSWER ---
         """
 
-        self.llama_model.llm_brain(
-            role="User",
+        answer = self.llama_model.llm_brain(
+            role="user",
             content=prompt
         )
+
+        result = {
+            "llm_answer": answer,
+            "sources": sources,
+            "query": query
+        }
+
+        return result
 
         
 
