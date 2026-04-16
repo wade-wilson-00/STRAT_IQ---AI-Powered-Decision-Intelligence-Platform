@@ -6,6 +6,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_chroma import Chroma
 from collections import Counter
+from llama_model import MetaModel
 
 load_dotenv()
 
@@ -23,6 +24,8 @@ class RAG_Service:
             embedding_function = self.embeddings,
             persist_directory=os.getenv("CHROMA_PERSIST_DIRECTORY_PATH"),
         )
+
+        self.llama_model = MetaModel()
         
     def load_data(self):
         #Loading Text Documents
@@ -207,7 +210,7 @@ class RAG_Service:
             if source not in used_sources:
                 used_sources.append(source)
 
-        return {
+        llm_context = {
             "context_text": "\n\n".join(context_parts),
             "sources": used_sources,
             "context_metrics": {
@@ -215,8 +218,43 @@ class RAG_Service:
                 "context_chars": total_chars,
             }
         }
+        return llm_context
+    
+    def generate_answer(self, query:str):
+
+        retrieval_result = self.retriever(query)
+        llm_context = self.build_context_package(retrieval_result)
+
+        sources = llm_context["sources"]
+        context = llm_context["context_text"]
+
+        prompt = f"""
+        You are STRAT_IQ Chatbot, an expert SaaS business strategist and advisor.
+        Use ONLY the context below to answer the user's question.
+        If the context does not have enough information, say so honestly.
+        Be concise, specific, and use bullet points where helpful.
+
+        --- KNOWLEDGE BASE CONTEXT ---
+        {llm_context}
+
+        --- USER QUESTION ---
+        {query}
+
+        --- YOUR ANSWER ---
+        """
+
+        self.llama_model.llm_brain(
+            role="User",
+            content=prompt
+        )
+
+        
 
 
+
+
+
+        
 
 
 
