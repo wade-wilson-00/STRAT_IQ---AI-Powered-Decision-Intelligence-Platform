@@ -427,27 +427,7 @@ cd backend && python -m uvicorn app.main:app --reload
 # Frontend
 cd frontend && npm run dev
 ```
-
-### **Testing**
-```bash
-# Run tests
-pytest backend/tests/
-
-# Test specific module
-pytest backend/tests/services/test_churn_service.py -v
-```
-
-### **Logs & Monitoring**
-```bash
-# Backend logs (FastAPI)
-tail -f backend/logs/app.log
-
-# Check model predictions
-python -c "from app.services import ChurnPredictionService; ..."
-```
-
 ---
-
 ---
 
 ## 🤝 Contributing
@@ -475,22 +455,6 @@ This project is licensed under the **MIT License** - see [LICENSE](LICENSE) file
 - 💼 [LinkedIn](https://www.linkedin.com/in/aman-gujamagadi-144770318/)
 - 📧 [Email](mailto:amxxn10@gmail.com)
 
----
-
-## 🙏 Acknowledgments
-
-- **Scikit-learn** - ML algorithms & evaluation
-- **FastAPI** - Web framework
-- **Next.js** - React framework
-- **Google Gemini** - LLM API
-- **Meta Llama** - Open-source model
-- **LangChain** - RAG orchestration
-- **ChromaDB** - Vector database
-
----
-
-## 📞 Support
-- **Email**: amxxn10@gmail.com
 ---
 
 **Last Updated:** April 17, 2026 | **Status:** 80% Complete | **Next Phase:** Frontend Integration, Database and Schema setup, Authentication and Deployment
