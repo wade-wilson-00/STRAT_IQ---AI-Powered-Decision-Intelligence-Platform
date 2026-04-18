@@ -1,0 +1,90 @@
+﻿Γû▓ Next.js 16.2.1 (Turbopack)
+
+  Creating an optimized production build ...
+Γ£ô Compiled successfully in 36.0s
+  Running TypeScript ...
+node.exe : Failed to type check.
+At C:\Program Files\nodejs\npx.ps1:29 
+char:3
++   & $NODE_EXE $NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : 
+NotSpecified: (    Failed to type 
+check.:String) [], RemoteE    xception
+    + FullyQualifiedErrorId : 
+NativeCommandEr    ror
+ 
+
+./src/app/settings/page.tsx:55:11
+Type error: Type '{ hidden: { opacity: 
+number; y: number; }; visible: (i: 
+number) => { opacity: number; y: number; 
+transition: { duration: number; delay: 
+number; ease: string; }; }; }' is not 
+assignable to type 'Variants'.
+  Property 'visible' is incompatible with 
+index signature.
+    Type '(i: number) => { opacity: 
+number; y: number; transition: { 
+duration: number; delay: number; ease: 
+string; }; }' is not assignable to type 
+'Variant'.
+      Type '(i: number) => { opacity: 
+number; y: number; transition: { 
+duration: number; delay: number; ease: 
+string; }; }' is not assignable to type 
+'TargetResolver'.
+        Type '{ opacity: number; y: 
+number; transition: { duration: number; 
+delay: number; ease: string; }; }' is not 
+assignable to type 'string | 
+TargetAndTransition'.
+          Type '{ opacity: number; y: 
+number; transition: { duration: number; 
+delay: number; ease: string; }; }' is not 
+assignable to type 'TargetAndTransition'.
+            Type '{ opacity: number; y: 
+number; transition: { duration: number; 
+delay: number; ease: string; }; }' is not 
+assignable to type '{ transition?: 
+Transition<any> | undefined; 
+transitionEnd?: ResolvedValues$1 | 
+undefined; }'.
+              Types of property 
+'transition' are incompatible.
+                Type '{ duration: number; 
+delay: number; ease: string; }' is not 
+assignable to type 'Transition<any> | 
+undefined'.
+                  Type '{ duration: 
+number; delay: number; ease: string; }' 
+is not assignable to type 
+'TransitionWithValueOverrides<any>'.
+                    Type '{ duration: 
+number; delay: number; ease: string; }' 
+is not assignable to type 
+'ValueAnimationTransition<any>'.
+                      Types of property 
+'ease' are incompatible.
+                        Type 'string' is 
+not assignable to type 'Easing | Easing[] 
+| undefined'.
+
+  [90m53 |[0m           
+initial=[32m"hidden"[0m
+  [90m54 |[0m           
+animate=[32m"visible"[0m
+[31m[1m>[0m [90m55 |[0m           
+variants={sectionVariants}
+  [90m   |[0m           [31m[1m^[0m
+  [90m56 |[0m           
+className=[32m"glass-card relative 
+overflow-hidden rounded-2xl p-6 
+border-t-accent-p...[0m
+  [90m57 |[0m         >
+  [90m58 |[0m           <div 
+className=[32m"pointer-events-none 
+absolute inset-0 bg-gradient-to-br 
+from-purp...[0m
+Next.js build worker exited with code: 1 
+and signal: null
