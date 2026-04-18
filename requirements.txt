@@ -23,5 +23,7 @@ langchain-google-genai
 langchain-text-splitters
 beautifulsoup4
 supabase
+
+#Install it with npm
 @supabase/supabase-js
 @supabase/ssr
