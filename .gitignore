@@ -3,4 +3,4 @@ __pycache__/
 .env
 *.pyc
 .env.example
-ode_modules/
+node_modules/
