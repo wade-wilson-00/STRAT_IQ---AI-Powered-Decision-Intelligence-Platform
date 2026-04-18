@@ -22,3 +22,6 @@ langchain-openai
 langchain-google-genai 
 langchain-text-splitters
 beautifulsoup4
+supabase
+@supabase/supabase-js
+@supabase/ssr
