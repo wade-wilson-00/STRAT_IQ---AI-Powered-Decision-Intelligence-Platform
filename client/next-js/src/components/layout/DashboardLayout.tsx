@@ -1,8 +1,11 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu } from 'lucide-react';
+import { createClient } from '@/lib/supabase';
+import type { User } from '@supabase/supabase-js';
 import Sidebar from './Sidebar';
 import { useUIStore } from '@/lib/store';
 
@@ -45,12 +48,7 @@ function FloatingOrbs() {
             background: `radial-gradient(circle, rgba(168,85,247,${0.03 - i * 0.005}) 0%, transparent 70%)`,
           }}
           animate={{ y: [0, -15, 0], opacity: [0.4, 0.7, 0.4] }}
-          transition={{
-            duration: 8 + i * 3,
-            repeat: Infinity,
-            ease: 'easeInOut',
-            delay: i * 1.2,
-          }}
+          transition={{ duration: 8 + i * 3, repeat: Infinity, ease: 'easeInOut', delay: i * 1.2 }}
         />
       ))}
     </div>
@@ -63,10 +61,38 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const title = pageTitles[pathname] || 'Dashboard';
   const subtitle = pageSubtitles[pathname] || 'STRAT_IQ Intelligence Layer';
   const glowClass = pageGlows[pathname] || 'page-glow-purple';
+  const [user, setUser] = useState<User | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setUser(session?.user ?? null);
+      // Log JWT to console silently on every auth state change
+      if (session?.access_token) {
+        console.groupCollapsed('🔑 STRAT_IQ — Session Active');
+        console.log('JWT:', session.access_token);
+        console.log('User:', session.user?.email);
+        console.log('Expires:', new Date((session.expires_at ?? 0) * 1000).toLocaleString());
+        console.groupEnd();
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
+  const fullName = (user?.user_metadata?.full_name as string) || user?.email?.split('@')[0] || 'User';
+  const initials = fullName
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <div className="min-h-screen bg-strat-bg">
-      {/* Ambient page glow */}
       <div className={`pointer-events-none fixed inset-0 ${glowClass} z-0`} />
       <FloatingOrbs />
 
@@ -89,15 +115,42 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <p className="text-[11px] text-slate-500">{subtitle}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-400">
+
+          {/* Right side: status + avatar */}
+          <div className="flex items-center gap-4">
+            <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-400">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
               System Online
             </span>
+
+            {/* User Avatar */}
+            {user && (
+              <div className="flex items-center gap-2.5">
+                <div className="relative">
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt={fullName}
+                      className="h-9 w-9 rounded-full object-cover shadow-md ring-2 ring-purple-500/50 ring-offset-1 ring-offset-slate-950"
+                    />
+                  ) : (
+                    <div className="h-9 w-9 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-sm font-bold text-white shadow-md ring-2 ring-purple-500/50 ring-offset-1 ring-offset-slate-950">
+                      {initials}
+                    </div>
+                  )}
+                  {/* Online indicator dot */}
+                  <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-slate-950" />
+                </div>
+                <div className="hidden md:block">
+                  <p className="text-xs font-semibold text-slate-200 leading-tight">{fullName}</p>
+                  <p className="text-[10px] text-slate-500 leading-tight">{user.email}</p>
+                </div>
+              </div>
+            )}
           </div>
         </header>
 
-        {/* Page content with AnimatePresence */}
+        {/* Page content */}
         <AnimatePresence mode="wait">
           <motion.main
             key={pathname}

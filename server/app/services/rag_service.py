@@ -6,7 +6,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_chroma import Chroma
 from collections import Counter
-from llama_model import MetaModel
+from services.llama_model import MetaModel
 
 load_dotenv()
 
