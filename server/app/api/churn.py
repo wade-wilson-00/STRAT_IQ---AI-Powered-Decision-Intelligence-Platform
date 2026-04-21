@@ -6,7 +6,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException
 from app.services.llm_layer import LLM_Analyst
-from api.auth import token_dependency
+from app.api.auth import token_dependency
 
 from app.schemas.churn_schema import ChurnClassifier, ChurnResponse
 

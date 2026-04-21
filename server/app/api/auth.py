@@ -1,7 +1,7 @@
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi import Depends
 from typing import Annotated
-from services.auth_service import get_current_user
+from app.services.auth_service import get_current_user
 
 security = HTTPBearer()
 

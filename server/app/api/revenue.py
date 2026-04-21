@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException
 from app.services.llm_layer import LLM_Analyst 
 from app.schemas.forecast_schema import Revenue, Revenue_Response
-from api.auth import token_dependency
+from app.api.auth import token_dependency
 
 load_dotenv()
 
