@@ -6,6 +6,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException
 from app.services.llm_layer import LLM_Analyst
+from api.auth import token_dependency
 
 from app.schemas.churn_schema import ChurnClassifier, ChurnResponse
 
@@ -29,7 +30,7 @@ except Exception as e:
 router = APIRouter()
 
 @router.post("/predict/churn", response_model=ChurnResponse)
-def predict_churn(data: ChurnClassifier):
+async def predict_churn(data: ChurnClassifier, user_id: token_dependency):
     if churn_model is None:
         logger.error("Churn prediction requested but model is not loaded")
         raise HTTPException(

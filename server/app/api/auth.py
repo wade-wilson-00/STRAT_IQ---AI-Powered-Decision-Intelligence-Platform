@@ -8,4 +8,4 @@ security = HTTPBearer()
 async def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
     return await get_current_user(credentials.credentials)
 
-token_dependency = Annotated[str, Depends(verify_token)]
+token_dependency = Annotated[str, Depends(verify_token)] 

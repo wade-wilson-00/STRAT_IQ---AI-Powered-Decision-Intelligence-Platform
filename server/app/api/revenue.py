@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException
 from app.services.llm_layer import LLM_Analyst 
 from app.schemas.forecast_schema import Revenue, Revenue_Response
+from api.auth import token_dependency
 
 load_dotenv()
 
@@ -27,7 +28,7 @@ except Exception as e:
 router = APIRouter()
 
 @router.post("/predict/revenue", response_model=Revenue_Response)
-def predict_revenue(data: Revenue):
+async def predict_revenue(data: Revenue, user_id: token_dependency):
     if revenue_model is None:
         logger.error("Revenue prediction requested but model is not loaded")
         raise HTTPException(
