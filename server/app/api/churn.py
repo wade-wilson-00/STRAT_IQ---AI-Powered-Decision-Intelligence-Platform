@@ -7,8 +7,8 @@ from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException
 from app.services.llm_layer import LLM_Analyst
 from app.api.auth import token_dependency
-
 from app.schemas.churn_schema import ChurnClassifier, ChurnResponse
+from app.database.crud import save_churn_prediction
 
 load_dotenv()
 
@@ -59,6 +59,9 @@ async def predict_churn(data: ChurnClassifier, user_id: token_dependency):
         logger.info(
             "Churn prediction successful: prediction=%d, probability=%.4f",
             prediction, probability,
+        )
+        await save_churn_prediction(
+            user_id, data, churn_prediction, churn_probability, status
         )
         return ChurnResponse(
             churn_prediction=prediction,

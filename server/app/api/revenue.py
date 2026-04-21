@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException
 from app.services.llm_layer import LLM_Analyst 
 from app.schemas.forecast_schema import Revenue, Revenue_Response
 from app.api.auth import token_dependency
+from app.database.crud import save_revenue_prediction
 
 load_dotenv()
 
@@ -50,6 +51,10 @@ async def predict_revenue(data: Revenue, user_id: token_dependency):
             ai_insight = f"Model Unavailable {str(e)}"
 
         logger.info("Revenue prediction successful: %.2f", predicted_mrr)
+
+        await save_revenue_prediction(
+            user_id, data, predicted_mrr, ai_insight, status
+        )
         return Revenue_Response(
             predicted_mrr=predicted_mrr,
             status=status,
