@@ -3,6 +3,7 @@ import sys
 import logging
 import joblib
 import pandas as pd
+import asyncio 
 from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException
 from app.services.llm_layer import LLM_Analyst 
@@ -39,12 +40,12 @@ async def predict_revenue(data: Revenue, user_id: token_dependency):
 
     try:
         df = pd.DataFrame([data.model_dump()])
-        prediction = revenue_model.predict(df)
+        prediction = await asyncio.to_thread(revenue_model.predict, df)
         predicted_mrr = float(prediction[0])
         status = "Success"
 
         try:
-            ai_insight = llm_analyst.get_revenue_insight(
+            ai_insight = await llm_analyst.get_revenue_insight(
                 predicted_mrr, status
             )
         except Exception as e:

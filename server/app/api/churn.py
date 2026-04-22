@@ -3,6 +3,7 @@ import sys
 import logging
 import joblib
 import pandas as pd
+import asyncio
 from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException
 from app.services.llm_layer import LLM_Analyst
@@ -41,15 +42,15 @@ async def predict_churn(data: ChurnClassifier, user_id: token_dependency):
     try:
         df = pd.DataFrame([data.model_dump()])
 
-        churn_prediction = churn_model.predict(df)
-        churn_probability = churn_model.predict_proba(df)
+        churn_prediction = await asyncio.to_thread(churn_model.predict, df)
+        churn_probability = await asyncio.to_thread(churn_model.predict_proba, df)
 
         prediction = int(churn_prediction[0])
         probability = float(churn_probability[0][1])
         status = "Success"
         
         try:
-            ai_insight = llm_analyst.get_churn_insight(
+            ai_insight = await llm_analyst.get_churn_insight(
                 prediction, probability, status
             )
         except Exception as e:

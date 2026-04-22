@@ -11,7 +11,7 @@ from services.llama_model import MetaModel
 load_dotenv()
 
 class RAG_Service:
-    def __init__(self):
+    async def __init__(self):
         self.embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-2-preview")
 
         self.text_splitter = RecursiveCharacterTextSplitter(
@@ -27,7 +27,7 @@ class RAG_Service:
 
         self.llama_model = MetaModel()
         
-    def load_data(self):
+    async def load_data(self):
         #Loading Text Documents
         try:
             self.text_loader = DirectoryLoader(
@@ -41,7 +41,7 @@ class RAG_Service:
         except Exception as e:
             return f"Error in Loading Text Files {str(e)}"
     
-    def chunking_data(self):
+    async def chunking_data(self):
 
         #Verifying Loaded Docs
         if self.load_txt_data:
@@ -93,7 +93,7 @@ class RAG_Service:
             print(f"\n--- Last Chunk ---\nMeta: {self.chunked_docs[-1].metadata}")
             print(f"Text: {self.chunked_docs[-1].page_content[:200]}...") 
         
-    def vector_store(self):
+    async def vector_store(self):
         chunk_length = len(self.chunked_docs)
 
         if chunk_length > 0:
@@ -118,7 +118,7 @@ class RAG_Service:
         stored_count = len(self.stored_docs)
         print(f"Stored Count of Chunks in DB: {stored_count}")
     
-    def ensure_index_ready(self, reindex: bool = False):
+    async def ensure_index_ready(self, reindex: bool = False):
 
         existing_count = 0
         try:
@@ -142,7 +142,7 @@ class RAG_Service:
         self.chunking_data()
         self.vector_store()
     
-    def retriever(self, query:str, top_k: int=4):
+    async def retriever(self, query:str, top_k: int=4):
         if not query or not query.strip():
             return {
                 "chunks": [],
@@ -186,7 +186,7 @@ class RAG_Service:
         }
         return retrieval_result
     
-    def build_context_package(self, retrieval_result, max_chunks=4, max_chars=4000):
+    async def build_context_package(self, retrieval_result, max_chunks=4, max_chars=4000):
 
         chunks = retrieval_result["chunks"]
         context_parts = []
@@ -220,7 +220,7 @@ class RAG_Service:
         }
         return llm_context
     
-    def generate_answer(self, query:str):
+    async def generate_answer(self, query:str):
 
         retrieval_result = self.retriever(query)
         llm_context = self.build_context_package(retrieval_result)

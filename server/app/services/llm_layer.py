@@ -9,7 +9,7 @@ class LLM_Analyst:
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
         self.model = os.getenv("GEMINI_MODEL")
     
-    def get_revenue_insight(self, predicted_mrr:float, status:str):
+    async def get_revenue_insight(self, predicted_mrr:float, status:str):
 
         prompt =  f"""You are a concise SaaS data analyst.
         Analyze the forecast below and return exactly 2 bullet points.
@@ -24,7 +24,7 @@ class LLM_Analyst:
         • Insight 2"""
 
         try:
-            response = self.client.models.generate_content(
+            response = await self.client.aio.models.generate_content(
                 model=self.model,
                 contents=prompt,
             )
@@ -32,7 +32,7 @@ class LLM_Analyst:
         except Exception as e:
             return f"• Unable to generate insight\n• System error: {str(e)[:50]}"
     
-    def get_churn_insight(self, churn_prediction:int, churn_probability:float, status:str):
+    async def get_churn_insight(self, churn_prediction:int, churn_probability:float, status:str):
         
         prompt = f"""You are a concise SaaS retention analyst.
         Analyze the churn result below and return exactly 2 bullet points.
@@ -48,7 +48,7 @@ class LLM_Analyst:
         • Insight 2"""
 
         try:
-            response = self.client.models.generate_content(
+            response = await self.client.aio.models.generate_content(
                 model=self.model,
                 contents=prompt,
             )
