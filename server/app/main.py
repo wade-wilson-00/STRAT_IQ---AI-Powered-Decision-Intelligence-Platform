@@ -10,7 +10,7 @@ load_dotenv()
 
 import os
 
-from app.api import revenue, churn, health
+from app.api import revenue, churn, health, rag
 
 logging.basicConfig(
     level=logging.INFO,
@@ -57,3 +57,5 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(health.router, prefix="/api/v1")
 app.include_router(revenue.router, prefix="/api/v1")
 app.include_router(churn.router, prefix="/api/v1")
+app.include_router(rag.router, prefix="/api/v1")
+
