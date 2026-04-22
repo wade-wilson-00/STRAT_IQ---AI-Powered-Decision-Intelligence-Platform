@@ -11,7 +11,7 @@ from services.llama_model import MetaModel
 load_dotenv()
 
 class RAG_Service:
-    async def __init__(self):
+    def __init__(self):
         self.embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-2-preview")
 
         self.text_splitter = RecursiveCharacterTextSplitter(
@@ -243,9 +243,9 @@ class RAG_Service:
         --- YOUR ANSWER ---
         """
 
-        answer = self.llama_model.llm_brain(
+        answer = await self.llama_model.llm_brain(
             role="user",
-            content=prompt
+            content=prompt,
         )
 
         result = {

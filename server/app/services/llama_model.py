@@ -1,17 +1,17 @@
 import os
 from dotenv import load_dotenv
-from huggingface_hub import InferenceClient
+from huggingface_hub import AsyncInferenceClient
 
 load_dotenv()
 
 class MetaModel:
     def __init__(self):
-        self.client = InferenceClient(
+        self.client = AsyncInferenceClient(
             api_key=os.getenv("HUGGING_FACE_API_KEY")
         )
     
-    def llm_brain(self, role:str, content:str):
-        self.completion =  self.client.chat.completions.create(
+    async def llm_brain(self, role:str, content:str):
+        self.completion =  await self.client.chat.completions.create(
             model= os.getenv("META_LLAMA_MODEL"),
             messages=[
                 {
@@ -19,6 +19,7 @@ class MetaModel:
                 "content":str(content)
                 }
             ],
+            max_tokens=250
         )
 
         assistant_text = self.completion.choices[0].message.content
