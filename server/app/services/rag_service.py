@@ -1,5 +1,7 @@
 import os
 import numpy as np
+import asyncio
+import json
 from dotenv import load_dotenv
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -138,9 +140,9 @@ class RAG_Service:
             print(f"Index ready: collection already has {existing_count} vectors.")
             return
             
-        self.load_data()
-        self.chunking_data()
-        self.vector_store()
+        await self.load_data()
+        await self.chunking_data()
+        await self.vector_store() 
     
     async def retriever(self, query:str, top_k: int=4):
         if not query or not query.strip():
@@ -153,9 +155,9 @@ class RAG_Service:
             }
         }
 
-        self.ensure_index_ready(reindex=False)
+        await self.ensure_index_ready(reindex=False)
 
-        docs = self.vectorstore.similarity_search(
+        docs = await asyncio.to_thread(self.vectorstore.similarity_search,
             query=query,
             k = top_k
         )
@@ -222,8 +224,8 @@ class RAG_Service:
     
     async def generate_answer(self, query:str):
 
-        retrieval_result = self.retriever(query)
-        llm_context = self.build_context_package(retrieval_result)
+        retrieval_result = await self.retriever(query)
+        llm_context = await self.build_context_package(retrieval_result)
 
         sources = llm_context["sources"]
         context = llm_context["context_text"]
@@ -243,19 +245,16 @@ class RAG_Service:
         --- YOUR ANSWER ---
         """
 
-        answer = await self.llama_model.llm_brain(
-            role="user",
-            content=prompt,
-        )
+        sources_json = json.dumps({"type":"sources","data": sources})
+        yield f"data: {sources_json}\n\n"
 
-        result = {
-            "llm_answer": answer,
-            "sources": sources,
-            "query": query
-        }
-
-        return result
-
+        async for token in self.llama_model.llm_brain(role="user",content=prompt):
+            token_json = json.dumps({"type":"token",
+            "data": token})
+            yield f"data: {token_json}\n\n"
+        
+        yield "data: [DONE]\n\n"
+    
         
 
 

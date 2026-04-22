@@ -11,19 +11,21 @@ class MetaModel:
         )
     
     async def llm_brain(self, role:str, content:str):
-        self.completion =  await self.client.chat.completions.create(
-            model= os.getenv("META_LLAMA_MODEL"),
-            messages=[
+        stream = await self.client.chat.completions.create(
+            model=os.getenv("META_LLAMA_MODEL"),
+            messages = [
                 {
                 "role": str(role),
                 "content":str(content)
                 }
             ],
-            max_tokens=250
+            max_tokens=250,
+            stream=True
         )
-
-        assistant_text = self.completion.choices[0].message.content
-        return assistant_text
+        async for chunk in stream:
+            token = chunk.choices[0].delta.content
+            if token:
+                yield token
 
 if __name__ == "__main__":
 
