@@ -55,13 +55,8 @@ TOTAL COMPLETION:                         80% ✅
 
 ```json
 {
-  "churn_probability": 0.82,
-  "risk_level": "HIGH",
-  "top_drivers": [
-    {"factor": "payment_failures", "impact": 0.35},
-    {"factor": "low_engagement", "impact": 0.25},
-    {"factor": "support_tickets_spike", "impact": 0.20}
-  ],
+  "churn_prediction": 0-1,
+  "churn_probability": 0-100
   "ai_insight": "⚠️ Payment failures are critical signal. Immediate action needed."
 }
 ```
@@ -75,8 +70,6 @@ TOTAL COMPLETION:                         80% ✅
 ```json
 {
   "predicted_mrr": 150000,
-  "arr_projected": 1800000,
-  "growth_percentage": 35.5,
   "ai_insight": "Growth trajectory is healthy. Focus expansion efforts..."
 }
 ```
@@ -134,7 +127,7 @@ AWS S3                   - File storage
 Docker                   - Containerization
 ```
 
-### **Deployment**
+### **Deployment (In Progress)**
 ```
 Vercel                   - Frontend hosting
 Railway / Render         - Backend hosting
@@ -204,6 +197,8 @@ STRAT_IQ/
 # APIs
 - Gemini API key (get free at ai.google.dev)
 - HuggingFace API token (free at huggingface.co)
+- LangChain API Key (free at LangChain.com)
+- Supabase API Key and URL - (free from Supabase.com)
 ```
 
 ### **1. Clone Repository**
@@ -237,14 +232,14 @@ python -m uvicorn app.main:app --reload --port 8000
 ### **3. Frontend Setup**
 
 ```bash
-cd frontend
+cd client\next-js
 
 # Install dependencies
 npm install
 
 # Create .env.local
 cat > .env.local << EOF
-NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_API_URL=http://localhost:3001
 EOF
 
 # Run development server
@@ -277,10 +272,9 @@ Content-Type: application/json
 
 Response:
 {
-  "churn_probability": 0.42,
-  "risk_level": "MEDIUM",
-  "top_drivers": [...],
-  "ai_insight": "..."
+  "churn_prediction": 0-1,
+  "churn_probability":0-100,
+  "ai_insight":"Gemini_Analysis",
 }
 ```
 
@@ -290,28 +284,25 @@ POST /predict/revenue
 Content-Type: application/json
 
 {
-  "current_mrr": 100000,
-  "mrr_growth_rate": 0.08,
-  "churn_rate": 0.03,
-  "expansion_rate": 0.025,
-  "months": 6
+  "mrr": 50000.0,
+  "active_users": 1200,
+  "cac": 150.0,
+  "churn_rate": 0.05,
+  "marketing_spend": 10000.0,
+  "burn_rate": 25000.0
 }
 
 Response:
 {
   "predicted_mrr": 135000,
-  "arr_projected": 1620000,
-  "growth_percentage": 35.0,
-  "confidence_level": "HIGH"
+  "status": "Success",
+  "ai_insight":"Gemini_Analysis on Prediction"
 }
 ```
 
-### **AI Analysis**
+### **RAG Insights**
 ```bash
-POST /ai/analyze/churn
-POST /ai/ask
-GET  /ai/recommendations
-(STILL IN PROGRESS)
+POST /api/v1/chat-stream
 ```
 ---
 
@@ -351,23 +342,19 @@ Recall:    74.55%
 - Feature engineering: 5 derived features
 - Train/test split: 80/20
 
-### **Revenue Forecasting: Component-Based**
+### **Revenue Forecasting**
 
-**Method:**
+**Features**
 ```
-Projected MRR = Current MRR 
-              + New Sales MRR 
-              - Churn MRR 
-              + Expansion MRR 
-              - Contraction MRR
+class Revenue(BaseModel):
+    mrr: float = Field(..., gt=0, description="Monthly Recurring Revenue must be positive")
+    active_users: int = Field(..., ge=0)
+    cac: float = Field(..., ge=0, description="Customer Acquisition Cost")
+    churn_rate: float = Field(..., ge=0, le=1, description="Churn rate as a decimal between 0 and 1")
+    marketing_spend: float = Field(..., ge=0)
+    burn_rate: float = Field(..., ge=0)
+
 ```
-
-**Assumptions Tracked:**
-- Monthly new customer acquisition growth
-- Churn rate evolution (by cohort)
-- Expansion velocity (upsells, seats)
-- Seasonal patterns (Q4 boost, Q1 dip)
-
 ---
 
 ## 🧠 LLM Integration
@@ -380,7 +367,7 @@ Projected MRR = Current MRR
 
 ### **Persona B: Llama 3.1 + RAG (Strategic Advisor)**
 - **Method**: Retrieval-Augmented Generation
-- **Knowledge Base**: ChromaDB with 50+ SaaS playbooks
+- **Knowledge Base**: ChromaDB with Relevant txt files for SaaS Strategies
 - **Capabilities**: 
   - Natural language questioning
   - Strategic recommendation generation
@@ -389,10 +376,9 @@ Projected MRR = Current MRR
 
 ---
 ---
-## Currently in Progress...
 ## 🔐 Security
 
-- **Authentication**: JWT tokens + OAuth 2.0
+- **Authentication**: JWT tokens + OAuth 2.0 (SUPABASE)
 - **Authorization**: Role-based access control (RBAC)
 - **Data Isolation**: Multi-tenant database isolation
 - **API Security**: CORS, rate limiting, input validation
@@ -407,12 +393,7 @@ Projected MRR = Current MRR
 Churn Prediction Latency:   ~150ms (model + LLM)
 Revenue Forecast Latency:   ~200ms (component calculation + LLM)
 AI Insight Generation:      ~300-500ms (Gemini API)
-RAG Query Response:         ~4-5s (vector search + Llama inference)
-
-Throughput (single instance):
-- 1,000 predictions/minute
-- 100 concurrent requests
-- Sub-1s p99 latency under normal load
+RAG Query Response:         ~2s (vector search + Llama AsyncInference)
 ```
 
 ---
@@ -457,7 +438,7 @@ This project is licensed under the **MIT License** - see [LICENSE](LICENSE) file
 
 ---
 
-**Last Updated:** April 17, 2026 | **Status:** 80% Complete | **Next Phase:** Frontend Integration, Database and Schema setup, Authentication and Deployment
+**Last Updated:** April 23, 2026 | **Status:** 80% Complete | **Next Phase:** Frontend Integration and Cloud Deployment
 
 ---
 
