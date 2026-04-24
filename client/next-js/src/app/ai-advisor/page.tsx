@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Send,
@@ -10,6 +10,8 @@ import {
   Search,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +29,51 @@ export default function AIAdvisorPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Token drip queue for smooth typewriter effect
+  const tokenQueueRef = useRef<string[]>([]);
+  const dripIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Drip one token from the queue to the displayed message every ~18ms
+  const startDrip = useCallback(() => {
+    if (dripIntervalRef.current) return; // already running
+    dripIntervalRef.current = setInterval(() => {
+      if (tokenQueueRef.current.length === 0) return;
+      const token = tokenQueueRef.current.shift()!;
+      setMessages((prev) => {
+        const newMsgs = [...prev];
+        const last = newMsgs[newMsgs.length - 1];
+        newMsgs[newMsgs.length - 1] = { ...last, content: last.content + token };
+        return newMsgs;
+      });
+    }, 25);
+  }, []);
+
+  const stopDrip = useCallback(() => {
+    if (dripIntervalRef.current) {
+      clearInterval(dripIntervalRef.current);
+      dripIntervalRef.current = null;
+    }
+  }, []);
+
+  // When stream ends, flush remaining queued tokens then stop
+  const flushAndStop = useCallback(() => {
+    if (dripIntervalRef.current) {
+      clearInterval(dripIntervalRef.current);
+      dripIntervalRef.current = null;
+    }
+    // Drain any remaining tokens in one shot
+    if (tokenQueueRef.current.length > 0) {
+      const remaining = tokenQueueRef.current.join('');
+      tokenQueueRef.current = [];
+      setMessages((prev) => {
+        const newMsgs = [...prev];
+        const last = newMsgs[newMsgs.length - 1];
+        newMsgs[newMsgs.length - 1] = { ...last, content: last.content + remaining };
+        return newMsgs;
+      });
+    }
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -46,6 +93,8 @@ export default function AIAdvisorPage() {
 
     // Add empty assistant message to stream into
     setMessages((prev) => [...prev, { role: 'assistant', content: '', sources: [] }]);
+    tokenQueueRef.current = [];
+    startDrip();
 
     try {
       const headers = await getAuthHeaders();
@@ -94,15 +143,13 @@ export default function AIAdvisorPage() {
               if (parsed.type === 'sources') {
                 setMessages((prev) => {
                   const newMsgs = [...prev];
-                  newMsgs[newMsgs.length - 1].sources = parsed.data;
+                  const lastMsg = newMsgs[newMsgs.length - 1];
+                  newMsgs[newMsgs.length - 1] = { ...lastMsg, sources: parsed.data };
                   return newMsgs;
                 });
               } else if (parsed.type === 'token') {
-                setMessages((prev) => {
-                  const newMsgs = [...prev];
-                  newMsgs[newMsgs.length - 1].content += parsed.data;
-                  return newMsgs;
-                });
+                // Push to queue — drip interval will render smoothly
+                tokenQueueRef.current.push(parsed.data);
               }
             } catch (e) {
               console.error('Error parsing JSON chunk:', e, dataStr);
@@ -113,7 +160,7 @@ export default function AIAdvisorPage() {
     } catch (err) {
       console.error(err);
       toast.error('Failed to get an answer from the advisor.');
-      
+      stopDrip();
       // Remove the empty assistant message on error
       setMessages((prev) => {
         const newMsgs = [...prev];
@@ -123,7 +170,11 @@ export default function AIAdvisorPage() {
         return newMsgs;
       });
     } finally {
-      setIsLoading(false);
+      // Wait for drip to finish then stop
+      setTimeout(() => {
+        flushAndStop();
+        setIsLoading(false);
+      }, tokenQueueRef.current.length * 18 + 100);
     }
   };
 
@@ -179,12 +230,30 @@ export default function AIAdvisorPage() {
                     msg.role === 'user' ? "items-end" : "items-start"
                   )}>
                     <div className={cn(
-                      "px-4 py-3 rounded-2xl whitespace-pre-wrap break-words text-sm leading-relaxed",
+                      "px-4 py-3 rounded-2xl text-sm leading-relaxed",
                       msg.role === 'user'
                         ? "bg-purple-600/20 text-purple-50 border border-purple-500/20 rounded-tr-sm"
-                        : "bg-slate-800/40 text-slate-200 border border-slate-700/50 rounded-tl-sm"
+                        : "bg-slate-800/40 text-slate-200 border border-slate-700/50 rounded-tl-sm max-w-none"
                     )}>
-                      {msg.content || (
+                      {msg.content ? (
+                        msg.role === 'user' ? (
+                          <div className="whitespace-pre-wrap break-words">{msg.content}</div>
+                        ) : (
+                          <ReactMarkdown 
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              p: ({...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                              ul: ({...props}) => <ul className="list-disc pl-4 mb-2 space-y-1" {...props} />,
+                              ol: ({...props}) => <ol className="list-decimal pl-4 mb-2 space-y-1" {...props} />,
+                              li: ({...props}) => <li className="pl-1" {...props} />,
+                              strong: ({...props}) => <strong className="font-semibold text-cyan-300" {...props} />,
+                              a: ({...props}) => <a className="text-cyan-400 hover:underline" {...props} />,
+                            }}
+                          >
+                            {msg.content}
+                          </ReactMarkdown>
+                        )
+                      ) : (
                         <div className="flex items-center gap-1 h-5">
                           <motion.div className="h-1.5 w-1.5 rounded-full bg-cyan-400" animate={{ y: [0, -3, 0], opacity: [0.3, 1, 0.3] }} transition={{ duration: 0.8, repeat: Infinity, delay: 0 }} />
                           <motion.div className="h-1.5 w-1.5 rounded-full bg-cyan-400" animate={{ y: [0, -3, 0], opacity: [0.3, 1, 0.3] }} transition={{ duration: 0.8, repeat: Infinity, delay: 0.15 }} />

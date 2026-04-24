@@ -28,7 +28,7 @@ class RAG_Service:
         )
 
         self.llama_model = MetaModel()
-        
+        self._index_ready = False  # Cache flag — prevents redundant count() on every query
     async def load_data(self):
         #Loading Text Documents
         try:
@@ -121,6 +121,9 @@ class RAG_Service:
         print(f"Stored Count of Chunks in DB: {stored_count}")
     
     async def ensure_index_ready(self, reindex: bool = False):
+        # Return immediately if index was already confirmed this session
+        if self._index_ready and not reindex:
+            return
 
         existing_count = 0
         try:
@@ -138,11 +141,13 @@ class RAG_Service:
 
         if existing_count > 0:
             print(f"Index ready: collection already has {existing_count} vectors.")
+            self._index_ready = True
             return
             
         await self.load_data()
         await self.chunking_data()
-        await self.vector_store() 
+        await self.vector_store()
+        self._index_ready = True
     
     async def retriever(self, query:str, top_k: int=4):
         if not query or not query.strip():
@@ -237,7 +242,7 @@ class RAG_Service:
         Be concise, specific, and use bullet points where helpful.
 
         --- KNOWLEDGE BASE CONTEXT ---
-        {llm_context}
+        {context}
 
         --- USER QUESTION ---
         {query}

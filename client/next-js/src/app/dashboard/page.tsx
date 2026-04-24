@@ -8,43 +8,15 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import StatsCard from '@/components/dashboard/StatsCard';
 import RiskPanel from '@/components/dashboard/RiskPanel';
 import ForecastChart from '@/components/charts/ForecastChart';
-import ChurnRateChart from '@/components/charts/ChurnRateChart';
 import RiskEngineChart from '@/components/charts/RiskEngineChart';
-import { postForecast, postChurn } from '@/lib/api';
-import type { ForecastResult, ChurnResult } from '@/lib/api';
+import { usePredictionStore } from '@/lib/store';
 
 export default function DashboardPage() {
-  const [forecast, setForecast] = useState<ForecastResult | null>(null);
-  const [churn, setChurn] = useState<ChurnResult | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { latestForecast, latestChurn } = usePredictionStore();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        const [fRes, cRes] = await Promise.all([
-          postForecast({
-            current_mrr: 48000,
-            mrr_growth_rate: 8,
-            churn_rate: 4.5,
-            expansion_rate: 3,
-            months: 6,
-          }),
-          postChurn({
-            nps_score: 7,
-            login_frequency: 5,
-            support_tickets: 2,
-            usage_hours: 6,
-            contract_length: 12,
-            monthly_spend: 450,
-          }),
-        ]);
-        setForecast(fRes);
-        setChurn(cRes);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
+    setMounted(true);
   }, []);
 
   const navCards = [
@@ -80,6 +52,23 @@ export default function DashboardPage() {
     },
   ];
 
+  if (!mounted) return null;
+
+  // Generate synthetic timeseries based on latest forecast or default
+  const baseMrr = latestForecast?.predicted_mrr ?? 48000;
+  const timeSeries = [
+    { month: 'Jan', revenue: baseMrr * 0.8, projected: baseMrr * 0.82 },
+    { month: 'Feb', revenue: baseMrr * 0.85, projected: baseMrr * 0.86 },
+    { month: 'Mar', revenue: baseMrr * 0.9, projected: baseMrr * 0.91 },
+    { month: 'Apr', revenue: baseMrr * 0.95, projected: baseMrr * 0.96 },
+    { month: 'May', revenue: baseMrr * 0.98, projected: baseMrr * 0.99 },
+    { month: 'Jun', revenue: baseMrr, projected: baseMrr * 1.05 },
+  ];
+
+  // Map Churn to standard Risk Levels
+  const churnProb = latestChurn?.churn_probability ?? 15;
+  const riskLevel = churnProb > 60 ? 'high' : churnProb > 30 ? 'medium' : 'low';
+  
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -87,7 +76,7 @@ export default function DashboardPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatsCard
             title="Monthly Revenue"
-            value={forecast?.predicted_mrr ?? 48000}
+            value={latestForecast?.predicted_mrr ?? 48000}
             prefix="$"
             trend={8.2}
             icon={<DollarSign className="h-4 w-4" />}
@@ -101,10 +90,10 @@ export default function DashboardPage() {
             delay={0.1}
           />
           <StatsCard
-            title="Net Revenue Retention"
-            value={forecast?.metrics.net_revenue_retention ?? 106}
+            title="Avg Churn Risk"
+            value={churnProb}
             suffix="%"
-            trend={2.4}
+            trend={-2.4}
             icon={<Activity className="h-4 w-4" />}
             delay={0.2}
           />
@@ -113,20 +102,39 @@ export default function DashboardPage() {
         {/* Charts row 1 */}
         <div className="grid gap-6 lg:grid-cols-5">
           <div className="lg:col-span-3">
-            <ForecastChart data={forecast?.time_series ?? []} />
+            <ForecastChart data={timeSeries} />
           </div>
           <div className="lg:col-span-2">
             <RiskPanel
-              level={churn?.level ?? 'medium'}
-              summary={churn?.summary ?? 'Analyzing risk factors...'}
+              level={riskLevel}
+              summary={latestChurn?.ai_insight ?? 'Run a churn prediction to get AI-powered risk analysis and retention strategies.'}
             />
           </div>
         </div>
 
         {/* Charts row 2 */}
         <div className="grid gap-6 md:grid-cols-2">
-          <ChurnRateChart probability={churn?.probability} level={churn?.level} />
-          <RiskEngineChart riskLevel={churn?.level ?? 'medium'} />
+          <RiskEngineChart riskLevel={riskLevel} />
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+            className="glass-card relative rounded-2xl p-6 flex flex-col justify-center items-center text-center"
+          >
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
+              <Brain className="h-6 w-6 text-indigo-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-slate-100 mb-2">Need Strategic Advice?</h3>
+            <p className="text-sm text-slate-400 mb-6">
+              Ask your personalized AI Advisor about churn reduction, revenue growth, and more based on your data.
+            </p>
+            <Link
+              href="/ai-advisor"
+              className="px-6 py-2 rounded-xl bg-indigo-500/20 text-indigo-300 font-medium hover:bg-indigo-500/30 transition-colors border border-indigo-500/30"
+            >
+              Open AI Advisor
+            </Link>
+          </motion.div>
         </div>
 
         {/* Nav cards */}

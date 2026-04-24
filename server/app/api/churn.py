@@ -54,7 +54,8 @@ async def predict_churn(data: ChurnClassifier, user_id: token_dependency):
                 prediction, probability, status
             )
         except Exception as e:
-            ai_insight = f"Model Unavailable {str(e)}"
+            logger.error("Churn Gemini insight call failed: %s", e, exc_info=True)
+            ai_insight = f"• Unable to generate insight\n• System error: {str(e)[:80]}"
             
 
         logger.info(

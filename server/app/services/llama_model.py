@@ -19,7 +19,7 @@ class MetaModel:
                 "content":str(content)
                 }
             ],
-            max_tokens=250,
+            max_tokens=512,
             stream=True
         )
         async for chunk in stream:
