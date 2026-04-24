@@ -20,38 +20,28 @@ export const signupSchema = z
 export type SignupFormData = z.infer<typeof signupSchema>;
 
 export const churnFormSchema = z.object({
-  nps_score: z.coerce.number().min(0, 'Min 0').max(10, 'Max 10'),
-  login_frequency: z.coerce.number().min(0, 'Min 0').max(30, 'Max 30'),
-  support_tickets: z.coerce.number().min(0, 'Min 0').max(50, 'Max 50'),
-  usage_hours: z.coerce.number().min(0, 'Min 0').max(24, 'Max 24'),
-  contract_length: z.coerce.number().min(1, 'Min 1').max(36, 'Max 36'),
-  monthly_spend: z.coerce.number().min(0, 'Min 0'),
+  engagement_score: z.coerce.number().min(0).max(100),
+  nps_score: z.coerce.number().min(0).max(10),
+  product_adoption_rate: z.coerce.number().min(0).max(100),
+  payment_failures: z.coerce.number().min(0),
+  support_tickets_last_30d: z.coerce.number().min(0),
+  customer_age_months: z.coerce.number().min(0),
+  cac_payback_months: z.coerce.number().min(0),
+  active_users_ratio: z.coerce.number().min(0).max(100),
+  contract_length_months: z.coerce.number().min(1),
+  churn_risk_flag: z.coerce.number().min(0).max(1),
 });
-export type ChurnFormData = {
-  nps_score: number;
-  login_frequency: number;
-  support_tickets: number;
-  usage_hours: number;
-  contract_length: number;
-  monthly_spend: number;
-};
+export type ChurnFormData = z.infer<typeof churnFormSchema>;
 
 export const revenueFormSchema = z.object({
-  current_mrr: z.coerce.number().min(1, 'MRR is required'),
-  mrr_growth_rate: z.coerce.number().min(-100).max(100),
+  mrr: z.coerce.number().min(0),
+  active_users: z.coerce.number().min(0),
+  cac: z.coerce.number().min(0),
   churn_rate: z.coerce.number().min(0).max(100),
-  expansion_rate: z.coerce.number().min(0).max(100),
-  months: z.coerce.number().min(1).max(36),
-  previous_revenues: z.string().optional(),
+  marketing_spend: z.coerce.number().min(0),
+  burn_rate: z.coerce.number().min(0),
 });
-export type RevenueFormData = {
-  current_mrr: number;
-  mrr_growth_rate: number;
-  churn_rate: number;
-  expansion_rate: number;
-  months: number;
-  previous_revenues?: string;
-};
+export type RevenueFormData = z.infer<typeof revenueFormSchema>;
 
 export const settingsSchema = z.object({
   displayName: z.string().min(2, 'Name is required'),

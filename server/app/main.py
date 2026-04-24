@@ -36,7 +36,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-frontend_origin = os.getenv("FRONTEND_ORIGIN", "http://localhost:3000")
+frontend_origin = os.getenv("FRONTEND_ORIGIN", "http://localhost:3001")
 
 app.add_middleware(
     CORSMiddleware,

@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_chroma import Chroma
+from langchain_chroma import Chroma  
 from collections import Counter
 from app.services.llama_model import MetaModel
 

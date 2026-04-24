@@ -8,12 +8,15 @@ import {
   UserMinus,
   Loader2,
   MessageSquare,
-  LogIn,
   Headphones,
   Clock4,
-  FileText,
-  CreditCard,
   AlertTriangle,
+  Users,
+  CalendarDays,
+  Target,
+  Flag,
+  CreditCard,
+  Briefcase
 } from 'lucide-react';
 import { toast } from 'sonner';
 import DashboardLayout from '@/components/layout/DashboardLayout';
@@ -29,15 +32,19 @@ import { cn } from '@/lib/utils';
 import type { ChurnResult } from '@/lib/api';
 
 const engagementFields: { name: keyof ChurnFormData; label: string; placeholder: string; icon: React.ElementType }[] = [
+  { name: 'engagement_score', label: 'Engagement Score', placeholder: '0–100', icon: Target },
   { name: 'nps_score', label: 'NPS Score', placeholder: '0–10', icon: MessageSquare },
-  { name: 'login_frequency', label: 'Login Frequency / week', placeholder: '0–30', icon: LogIn },
-  { name: 'usage_hours', label: 'Daily Usage Hours', placeholder: '0–24', icon: Clock4 },
+  { name: 'product_adoption_rate', label: 'Adoption Rate (%)', placeholder: '0–100', icon: Target },
+  { name: 'active_users_ratio', label: 'Active Users Ratio (%)', placeholder: '0–100', icon: Users },
+  { name: 'churn_risk_flag', label: 'Prior Risk Flag (0/1)', placeholder: '0 or 1', icon: Flag },
 ];
 
 const accountFields: { name: keyof ChurnFormData; label: string; placeholder: string; icon: React.ElementType }[] = [
-  { name: 'support_tickets', label: 'Support Tickets (30d)', placeholder: '0–50', icon: Headphones },
-  { name: 'contract_length', label: 'Contract Length (months)', placeholder: '1–36', icon: FileText },
-  { name: 'monthly_spend', label: 'Monthly Spend ($)', placeholder: 'e.g. 500', icon: CreditCard },
+  { name: 'payment_failures', label: 'Payment Failures', placeholder: 'e.g. 1', icon: CreditCard },
+  { name: 'support_tickets_last_30d', label: 'Support Tickets (30d)', placeholder: '0–50', icon: Headphones },
+  { name: 'customer_age_months', label: 'Customer Age (months)', placeholder: 'e.g. 12', icon: Clock4 },
+  { name: 'cac_payback_months', label: 'CAC Payback (months)', placeholder: 'e.g. 6', icon: Briefcase },
+  { name: 'contract_length_months', label: 'Contract Length (months)', placeholder: '1–36', icon: CalendarDays },
 ];
 
 /* ── SVG Risk Gauge ── */
@@ -131,18 +138,28 @@ export default function ChurnPredictionPage() {
   } = useForm<ChurnFormData>({
     resolver: zodResolver(churnFormSchema) as any,
     defaultValues: {
-      nps_score: 7,
-      login_frequency: 5,
-      support_tickets: 2,
-      usage_hours: 6,
-      contract_length: 12,
-      monthly_spend: 450,
+      engagement_score: 85,
+      nps_score: 8,
+      product_adoption_rate: 65,
+      payment_failures: 0,
+      support_tickets_last_30d: 2,
+      customer_age_months: 18,
+      cac_payback_months: 6,
+      active_users_ratio: 75,
+      contract_length_months: 12,
+      churn_risk_flag: 0,
     },
   });
 
   const onSubmit = async (data: ChurnFormData) => {
     try {
-      const res = await mutation.mutateAsync(data);
+      const payload = {
+        ...data,
+        engagement_score: data.engagement_score / 100,
+        product_adoption_rate: data.product_adoption_rate / 100,
+        active_users_ratio: data.active_users_ratio / 100,
+      };
+      const res = await mutation.mutateAsync(payload);
       setResult(res);
       setLatestChurn(res);
       toast.success('Churn prediction complete');
@@ -162,6 +179,14 @@ export default function ChurnPredictionPage() {
     medium: 'from-amber-500/[0.05] to-transparent',
     high: 'from-rose-500/[0.05] to-transparent',
   };
+
+  const getRiskLevel = (prob: number): 'low' | 'medium' | 'high' => {
+    if (prob > 0.6) return 'high';
+    if (prob > 0.3) return 'medium';
+    return 'low';
+  };
+
+  const currentLevel = result ? getRiskLevel(result.churn_probability) : 'low';
 
   return (
     <DashboardLayout>
@@ -192,7 +217,7 @@ export default function ChurnPredictionPage() {
                 <div className="h-1 w-1 rounded-full bg-cyan-400" />
                 <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-slate-500">Engagement Signals</span>
               </div>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {engagementFields.map((f) => (
                   <div key={f.name} className="space-y-1.5">
                     <Label className="text-[11px] text-slate-400 font-medium">{f.label}</Label>
@@ -219,7 +244,7 @@ export default function ChurnPredictionPage() {
                 <div className="h-1 w-1 rounded-full bg-indigo-400" />
                 <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-slate-500">Account Details</span>
               </div>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {accountFields.map((f) => (
                   <div key={f.name} className="space-y-1.5">
                     <Label className="text-[11px] text-slate-400 font-medium">{f.label}</Label>
@@ -269,7 +294,7 @@ export default function ChurnPredictionPage() {
                 {/* Dynamic gradient based on risk */}
                 <div className={cn(
                   'pointer-events-none absolute inset-0 bg-gradient-to-br',
-                  levelGlows[result.level]
+                  levelGlows[currentLevel]
                 )} />
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
 
@@ -279,10 +304,10 @@ export default function ChurnPredictionPage() {
                   </div>
 
                   {/* Animated gauge */}
-                  <RiskGauge probability={result.probability} level={result.level} />
+                  <RiskGauge probability={result.churn_probability} level={currentLevel} />
 
                   <div className="font-display text-5xl font-bold text-slate-50 font-tabular mt-2 mb-3">
-                    <AnimatedProbability value={result.probability * 100} />%
+                    <AnimatedProbability value={result.churn_probability * 100} />%
                   </div>
 
                   <motion.div
@@ -291,22 +316,23 @@ export default function ChurnPredictionPage() {
                     transition={{ delay: 0.5 }}
                     className={cn(
                       'inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-semibold',
-                      levelColors[result.level],
+                      levelColors[currentLevel],
                     )}
                   >
                     <AlertTriangle className="h-3.5 w-3.5" />
-                    {result.level.toUpperCase()} RISK
+                    {currentLevel.toUpperCase()} RISK
                   </motion.div>
-                  <p className="mt-4 text-sm text-slate-400 leading-relaxed">{result.summary}</p>
+                  <p className="mt-4 text-sm text-slate-400 leading-relaxed font-semibold">Status: {result.status}</p>
+                  <p className="mt-1 text-sm text-slate-400 leading-relaxed">Prediction Score: {result.churn_prediction.toFixed(2)}</p>
                 </div>
               </motion.div>
 
-              <ChurnRateChart probability={result.probability} level={result.level} />
+              <ChurnRateChart probability={result.churn_probability} level={currentLevel} />
 
               <AIInsightPanel
                 title="AI Analysis"
                 insight={result.ai_insight}
-                tone={result.level === 'high' ? 'negative' : result.level === 'medium' ? 'neutral' : 'positive'}
+                tone={currentLevel === 'high' ? 'negative' : currentLevel === 'medium' ? 'neutral' : 'positive'}
               />
             </>
           ) : (

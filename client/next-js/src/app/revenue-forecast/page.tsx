@@ -10,16 +10,16 @@ import {
   DollarSign,
   ArrowUpRight,
   BarChart3,
-  Target,
-  Clock,
-  Zap,
+  Users,
+  Flame,
+  Activity,
+  Megaphone,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import ForecastChart from '@/components/charts/ForecastChart';
 import AIInsightPanel from '@/components/common/AIInsightPanel';
 import { revenueFormSchema, type RevenueFormData } from '@/lib/schemas';
 import { useForecastMutation } from '@/lib/queries';
@@ -27,14 +27,15 @@ import { usePredictionStore } from '@/lib/store';
 import type { ForecastResult } from '@/lib/api';
 
 const revenueMetricFields: { name: keyof RevenueFormData; label: string; placeholder: string; suffix?: string; icon: React.ElementType }[] = [
-  { name: 'current_mrr', label: 'Current MRR', placeholder: 'e.g. 48000', suffix: '$', icon: DollarSign },
-  { name: 'mrr_growth_rate', label: 'MRR Growth Rate', placeholder: 'e.g. 8', suffix: '%', icon: TrendingUp },
-  { name: 'churn_rate', label: 'Churn Rate', placeholder: 'e.g. 4.5', suffix: '%', icon: ArrowUpRight },
+  { name: 'mrr', label: 'Current MRR', placeholder: 'e.g. 48000', suffix: '$', icon: DollarSign },
+  { name: 'active_users', label: 'Active Users', placeholder: 'e.g. 1200', icon: Users },
+  { name: 'cac', label: 'CAC', placeholder: 'e.g. 150', suffix: '$', icon: Activity },
 ];
 
 const growthFactorFields: { name: keyof RevenueFormData; label: string; placeholder: string; suffix?: string; icon: React.ElementType }[] = [
-  { name: 'expansion_rate', label: 'Expansion Rate', placeholder: 'e.g. 3', suffix: '%', icon: Zap },
-  { name: 'months', label: 'Forecast Months', placeholder: 'e.g. 6', icon: Clock },
+  { name: 'churn_rate', label: 'Churn Rate', placeholder: 'e.g. 4.5', suffix: '%', icon: ArrowUpRight },
+  { name: 'marketing_spend', label: 'Marketing Spend', placeholder: 'e.g. 5000', suffix: '$', icon: Megaphone },
+  { name: 'burn_rate', label: 'Burn Rate', placeholder: 'e.g. 20000', suffix: '$', icon: Flame },
 ];
 
 function AnimatedCounter({ value, prefix = '' }: { value: number; prefix?: string }) {
@@ -54,13 +55,6 @@ function AnimatedCounter({ value, prefix = '' }: { value: number; prefix?: strin
   return <span>{prefix}{display.toLocaleString()}</span>;
 }
 
-const metricIcons: Record<string, React.ElementType> = {
-  NRR: BarChart3,
-  ARR: DollarSign,
-  'LTV/CAC': Target,
-  'Time to Target': Clock,
-};
-
 export default function RevenueForecastPage() {
   const [result, setResult] = useState<ForecastResult | null>(null);
   const { setLatestForecast } = usePredictionStore();
@@ -74,26 +68,19 @@ export default function RevenueForecastPage() {
   } = useForm<RevenueFormData>({
     resolver: zodResolver(revenueFormSchema) as any,
     defaultValues: {
-      current_mrr: 48000,
-      mrr_growth_rate: 8,
+      mrr: 48000,
+      active_users: 1200,
+      cac: 150,
       churn_rate: 4.5,
-      expansion_rate: 3,
-      months: 6,
+      marketing_spend: 5000,
+      burn_rate: 20000,
     },
   });
 
   const onSubmit = async (data: RevenueFormData) => {
     try {
-      const res = await mutation.mutateAsync({
-        current_mrr: data.current_mrr,
-        mrr_growth_rate: data.mrr_growth_rate,
-        churn_rate: data.churn_rate,
-        expansion_rate: data.expansion_rate,
-        months: data.months,
-        previous_revenues: data.previous_revenues
-          ? data.previous_revenues.split(',').map(Number)
-          : undefined,
-      });
+      const payload = { ...data, churn_rate: data.churn_rate / 100 };
+      const res = await mutation.mutateAsync(payload);
       setResult(res);
       setLatestForecast(res);
       toast.success('Revenue forecast generated');
@@ -165,7 +152,7 @@ export default function RevenueForecastPage() {
                 <div className="h-1 w-1 rounded-full bg-indigo-400" />
                 <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-slate-500">Growth Factors</span>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-3">
                 {growthFactorFields.map((f) => (
                   <div key={f.name} className="space-y-1.5">
                     <Label className="text-[11px] text-slate-400 font-medium">{f.label}</Label>
@@ -189,18 +176,6 @@ export default function RevenueForecastPage() {
                     )}
                   </div>
                 ))}
-              </div>
-            </div>
-
-            {/* Previous revenues (optional) */}
-            <div className="space-y-1.5">
-              <Label className="text-[11px] text-slate-400 font-medium">Previous Revenues (comma-separated, optional)</Label>
-              <div className="input-glow rounded-lg transition-all duration-200">
-                <Input
-                  placeholder="e.g. 42000,44000,46000"
-                  {...register('previous_revenues')}
-                  className="border-slate-700/40 bg-slate-900/40 text-slate-100 placeholder:text-slate-600"
-                />
               </div>
             </div>
 
@@ -244,35 +219,12 @@ export default function RevenueForecastPage() {
                       <AnimatedCounter value={result.predicted_mrr} />
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { label: 'NRR', value: `${result.metrics.net_revenue_retention}%` },
-                      { label: 'ARR', value: `$${(result.metrics.annual_run_rate / 1000).toFixed(0)}K` },
-                      { label: 'LTV/CAC', value: `${result.metrics.ltv_cac_ratio}x` },
-                      { label: 'Time to Target', value: `${result.metrics.months_to_target}mo` },
-                    ].map((m, i) => {
-                      const MetricIcon = metricIcons[m.label] || BarChart3;
-                      return (
-                        <motion.div
-                          key={m.label}
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.2 + i * 0.1 }}
-                          className="flex items-center gap-2.5 rounded-xl bg-slate-900/40 border border-slate-800/30 px-3 py-2.5"
-                        >
-                          <MetricIcon className="h-3.5 w-3.5 text-purple-400/70 flex-shrink-0" />
-                          <div>
-                            <div className="text-[10px] text-slate-500 uppercase">{m.label}</div>
-                            <div className="text-sm font-semibold text-slate-200 font-tabular">{m.value}</div>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4 text-purple-400" />
+                    <span className="text-sm font-semibold text-slate-200">Status: {result.status}</span>
                   </div>
                 </div>
               </motion.div>
-
-              <ForecastChart data={result.time_series} />
 
               <AIInsightPanel
                 title="AI Forecast Insight"

@@ -2,9 +2,6 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   postForecast,
   postChurn,
-  fetchRAGInsights,
-  fetchStrategyAdvice,
-  askAdvisor,
   type ForecastInput,
   type ChurnInput,
 } from './api';
@@ -29,24 +26,6 @@ export function useChurnRiskQuery(input?: ChurnInput) {
   });
 }
 
-export function useRAGQuery(query: string) {
-  return useQuery({
-    queryKey: ['rag', query],
-    queryFn: () => fetchRAGInsights(query),
-    enabled: query.length > 0,
-    staleTime: 1000 * 60 * 10,
-  });
-}
-
-export function useStrategyQuery(metrics: Record<string, number>) {
-  return useQuery({
-    queryKey: ['strategy', metrics],
-    queryFn: () => fetchStrategyAdvice(metrics),
-    enabled: Object.keys(metrics).length > 0,
-    staleTime: 1000 * 60 * 5,
-  });
-}
-
 // ─── Mutations ───
 
 export function useChurnMutation() {
@@ -58,11 +37,5 @@ export function useChurnMutation() {
 export function useForecastMutation() {
   return useMutation({
     mutationFn: postForecast,
-  });
-}
-
-export function useAdvisorMutation() {
-  return useMutation({
-    mutationFn: askAdvisor,
   });
 }
