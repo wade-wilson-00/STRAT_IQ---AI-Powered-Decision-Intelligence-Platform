@@ -62,7 +62,7 @@ async def predict_churn(data: ChurnClassifier, user_id: token_dependency):
             prediction, probability,
         )
         await save_churn_prediction(
-            user_id, data, churn_prediction, churn_probability, ai_insight, status
+            user_id, data, prediction, probability, ai_insight, status
         )
         return ChurnResponse(
             churn_prediction=prediction,

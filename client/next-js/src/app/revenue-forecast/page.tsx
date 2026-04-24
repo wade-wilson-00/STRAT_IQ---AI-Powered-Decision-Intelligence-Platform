@@ -56,8 +56,8 @@ function AnimatedCounter({ value, prefix = '' }: { value: number; prefix?: strin
 }
 
 export default function RevenueForecastPage() {
-  const [result, setResult] = useState<ForecastResult | null>(null);
-  const { setLatestForecast } = usePredictionStore();
+  const { latestForecast, setLatestForecast } = usePredictionStore();
+  const [result, setResult] = useState<ForecastResult | null>(latestForecast);
   const mutation = useForecastMutation();
 
   const {

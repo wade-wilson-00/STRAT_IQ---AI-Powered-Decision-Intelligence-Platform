@@ -23,7 +23,6 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import ChurnRateChart from '@/components/charts/ChurnRateChart';
 import AIInsightPanel from '@/components/common/AIInsightPanel';
 import { churnFormSchema, type ChurnFormData } from '@/lib/schemas';
 import { useChurnMutation } from '@/lib/queries';
@@ -126,8 +125,8 @@ function AnimatedProbability({ value }: { value: number }) {
 }
 
 export default function ChurnPredictionPage() {
-  const [result, setResult] = useState<ChurnResult | null>(null);
-  const { setLatestChurn } = usePredictionStore();
+  const { latestChurn, setLatestChurn } = usePredictionStore();
+  const [result, setResult] = useState<ChurnResult | null>(latestChurn);
   const mutation = useChurnMutation();
 
   const {
@@ -181,8 +180,8 @@ export default function ChurnPredictionPage() {
   };
 
   const getRiskLevel = (prob: number): 'low' | 'medium' | 'high' => {
-    if (prob > 0.6) return 'high';
-    if (prob > 0.3) return 'medium';
+    if (prob > 60) return 'high';
+    if (prob > 30) return 'medium';
     return 'low';
   };
 
@@ -225,6 +224,7 @@ export default function ChurnPredictionPage() {
                       <f.icon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
                       <Input
                         type="number"
+                        step="any"
                         placeholder={f.placeholder}
                         {...register(f.name)}
                         className="border-slate-700/40 bg-slate-900/40 text-slate-100 placeholder:text-slate-600 pl-9"
@@ -252,6 +252,7 @@ export default function ChurnPredictionPage() {
                       <f.icon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500" />
                       <Input
                         type="number"
+                        step="any"
                         placeholder={f.placeholder}
                         {...register(f.name)}
                         className="border-slate-700/40 bg-slate-900/40 text-slate-100 placeholder:text-slate-600 pl-9"
@@ -304,10 +305,10 @@ export default function ChurnPredictionPage() {
                   </div>
 
                   {/* Animated gauge */}
-                  <RiskGauge probability={result.churn_probability} level={currentLevel} />
+                  <RiskGauge probability={result.churn_probability / 100} level={currentLevel} />
 
                   <div className="font-display text-5xl font-bold text-slate-50 font-tabular mt-2 mb-3">
-                    <AnimatedProbability value={result.churn_probability * 100} />%
+                    <AnimatedProbability value={result.churn_probability} />%
                   </div>
 
                   <motion.div
@@ -326,8 +327,6 @@ export default function ChurnPredictionPage() {
                   <p className="mt-1 text-sm text-slate-400 leading-relaxed">Prediction Score: {result.churn_prediction.toFixed(2)}</p>
                 </div>
               </motion.div>
-
-              <ChurnRateChart probability={result.churn_probability} level={currentLevel} />
 
               <AIInsightPanel
                 title="AI Analysis"
