@@ -69,14 +69,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setUser(session?.user ?? null);
-      // Log JWT to console silently on every auth state change
-      if (session?.access_token) {
-        console.groupCollapsed('🔑 STRAT_IQ — Session Active');
-        console.log('JWT:', session.access_token);
-        console.log('User:', session.user?.email);
-        console.log('Expires:', new Date((session.expires_at ?? 0) * 1000).toLocaleString());
-        console.groupEnd();
-      }
     });
 
     return () => subscription.unsubscribe();
