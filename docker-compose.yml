@@ -1,0 +1,35 @@
+services:
+
+  backend:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    image: stratiq-backend:latest
+    container_name: stratiq-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env-docker
+    environment:
+      - PROJECT_ROOT=/app
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./client/next-js
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+        - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        - FAST_API_URL=http://backend:8000
+    image: stratiq-frontend:latest
+    container_name: stratiq-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - FAST_API_URL=http://backend:8000
+      - HOSTNAME=0.0.0.0
+      - PORT=3000
+    depends_on:
+      - backend
+    restart: unless-stopped
