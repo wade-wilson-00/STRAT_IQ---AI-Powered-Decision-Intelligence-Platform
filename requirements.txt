@@ -10,12 +10,10 @@ huggingface_hub
 google-generativeai
 google-genai
 chromadb
-sentence-transformers
+langchain-chroma
 langchain
 langchain-core
 langchain-community
-transformers
-torch
 pypdf
 openai
 langchain-openai
@@ -23,7 +21,4 @@ langchain-google-genai
 langchain-text-splitters
 beautifulsoup4
 supabase
-
-#Install it with npm
-@supabase/supabase-js
-@supabase/ssr
+docker
