@@ -33,20 +33,24 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  // Helper to construct absolute redirect URLs respecting reverse proxy/load balancer headers
+  const getRedirectUrl = (targetPath: string) => {
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || request.nextUrl.host;
+    const proto = request.headers.get('x-forwarded-proto') || request.nextUrl.protocol.replace(':', '');
+    const protocol = proto.endsWith(':') ? proto : `${proto}:`;
+    return new URL(targetPath, `${protocol}//${host}`);
+  };
+
   // If user is NOT logged in and tries to access a protected route → redirect to /login
   const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
   if (isProtected && !user) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = '/login';
-    return NextResponse.redirect(redirectUrl);
+    return NextResponse.redirect(getRedirectUrl('/login'));
   }
 
   // If user IS logged in and tries to access login/signup → redirect to /dashboard
   const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
   if (isAuthRoute && user) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = '/dashboard';
-    return NextResponse.redirect(redirectUrl);
+    return NextResponse.redirect(getRedirectUrl('/dashboard'));
   }
 
   return supabaseResponse;
