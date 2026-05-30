@@ -33,8 +33,12 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Helper to construct absolute redirect URLs respecting reverse proxy/load balancer headers
   const getRedirectUrl = (targetPath: string) => {
+
+    if (process.env.NEXT_PUBLIC_SITE_URL) {
+      return new URL(targetPath, process.env.NEXT_PUBLIC_SITE_URL);
+    }
+
     const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || request.nextUrl.host;
     const proto = request.headers.get('x-forwarded-proto') || request.nextUrl.protocol.replace(':', '');
     const protocol = proto.endsWith(':') ? proto : `${proto}:`;
