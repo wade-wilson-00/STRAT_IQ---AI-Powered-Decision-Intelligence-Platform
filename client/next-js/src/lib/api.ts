@@ -34,7 +34,7 @@ export interface ChurnResult {
   ai_insight: string;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_FAST_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_FAST_API_URL || '/api/v1';
 
 export async function getAuthHeaders(){
   const supabase = createClient();
